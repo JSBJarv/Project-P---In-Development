@@ -1,0 +1,257 @@
+From 815aa432a2f78a9ae10ed2669ac3701ff6274671 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 30 Sep 2026 23:23:46 +0800
+Subject: [PATCH] Add sprite-sheet-slicer Claude skill
+
+Slices grid sprite sheets into fixed-size frames without redrawing and
+exports a clean sheet, per-frame PNGs, animation JSON, Godot 4
+SpriteFrames resource and an HTML preview.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01UFAiAVDHFXUdxAtEehN3pf
+---
+ claude-skills/README.md                       |   2 +-
+ claude-skills/sprite-sheet-slicer/SKILL.md    |  63 ++++++++
+ .../scripts/slice_spritesheet.py              | 150 ++++++++++++++++++
+ 3 files changed, 214 insertions(+), 1 deletion(-)
+ create mode 100644 claude-skills/sprite-sheet-slicer/SKILL.md
+ create mode 100644 claude-skills/sprite-sheet-slicer/scripts/slice_spritesheet.py
+
+diff --git a/claude-skills/README.md b/claude-skills/README.md
+index 3143d1f..4db03ae 100644
+--- a/claude-skills/README.md
++++ b/claude-skills/README.md
+@@ -13,4 +13,4 @@ claude-skills/
+ 
+ | Skill | Purpose |
+ | --- | --- |
+-| _none yet_ | |
++| [sprite-sheet-slicer](sprite-sheet-slicer/) | Cut a grid sprite sheet into fixed-size frames (e.g. 8x8 → 128px) without redrawing; exports clean sheet, frame PNGs, animation JSON, Godot SpriteFrames and a preview |
+diff --git a/claude-skills/sprite-sheet-slicer/SKILL.md b/claude-skills/sprite-sheet-slicer/SKILL.md
+new file mode 100644
+index 0000000..a7c3eb2
+--- /dev/null
++++ b/claude-skills/sprite-sheet-slicer/SKILL.md
+@@ -0,0 +1,63 @@
++---
++name: sprite-sheet-slicer
++description: Cut a grid sprite sheet (e.g. an 8x8 pet animation sheet) into fixed-size frames such as 128x128 without redrawing the art, and export a clean sheet, per-frame PNGs, animation JSON, a Godot SpriteFrames resource and a looping preview. Use when asked to slice, cut, split or animate a sprite sheet for Project P.
++---
++
++# Sprite sheet slicer
++
++Turns a generated sprite sheet (usually 8x8 cells, one animation per row or pair of rows) into game-ready frames. The art is **cropped and scaled only — never redrawn, repainted or regenerated**.
++
++## Inputs to collect
++
++1. The sheet image (attached file).
++2. Grid layout — default `8x8`.
++3. Output frame size — default `128` px.
++4. Row → animation mapping. The standard Project P pet layout is:
++
++   | Rows | Animation | `--anim` flag |
++   | --- | --- | --- |
++   | 1 | Egg idle | `egg_idle=1` |
++   | 2 | Egg hatch | `egg_hatch=2` |
++   | 3 | Pet emerging | `<pet>_emerge=3` |
++   | 4 | Pet idle | `<pet>_idle=4` |
++   | 5–6 | Jump and landing | `jump_land=5-6` |
++   | 7–8 | Ticklish and recovery | `ticklish_recovery=7-8` |
++
++   Rows read left to right, 1-based. If the user gives a different mapping, use theirs. If they give none and the sheet looks like the standard layout, use the table above and say so.
++5. Pet name (used as file prefix, e.g. `owl`, `turtle`).
++
++## Run
++
++```bash
++pip install pillow --break-system-packages   # if Pillow is missing
++python claude-skills/sprite-sheet-slicer/scripts/slice_spritesheet.py <sheet.png> \
++  --name owl --grid 8x8 --frame 128 \
++  --anim egg_idle=1 --anim egg_hatch=2 --anim owl_emerge=3 --anim owl_idle=4 \
++  --anim jump_land=5-6 --anim ticklish_recovery=7-8 \
++  --fps 10 --godot --res-dir res://assets/pets/owl --out out/owl
++```
++
++Options:
++
++- `--fps` playback speed written to the JSON, Godot resource and preview (default 10).
++- `--godot` also writes `<name>_spriteframes.tres` (Godot 4 `SpriteFrames`, one looping animation per `--anim`). `--res-dir` is the Godot folder the sheet PNG will be placed in.
++- `--clean-alpha N` zeroes pixels with alpha below N. Off by default so the art stays untouched; suggest `--clean-alpha 16` when faint red/yellow fringes from AI background removal show up in-game.
++- `--nearest` uses nearest-neighbour scaling for true pixel art; default is Lanczos (premultiplied alpha, so edges don't bleed).
++
++## Outputs
++
++| File | Contents |
++| --- | --- |
++| `<name>_spritesheet_<F>.png` | Clean sheet, `cols*F` x `rows*F`, same order as the source |
++| `<name>_spritesheet_<F>.json` | Frame size, grid, fps, animation name → frame indices |
++| `<name>_frames_<F>.zip` | Every frame as `<animation>_<col>.png` (two-row animations get `_a` / `_b`) |
++| `<name>_spriteframes.tres` | Godot SpriteFrames (with `--godot`) |
++| `<name>_preview.html` | Self-contained page looping each animation on a transparency checkerboard |
++
++Hand the user the sheet, JSON and zip (plus `.tres` when they use Godot) and show the preview. If a Design canvas is open, add one artboard per pet showing the full sheet and one looping player per animation, using the uploaded sheet as a CSS `steps(<cols>)` background animation.
++
++## Things to tell the user
++
++- The script prints the source cell size. If it isn't exactly the frame size (e.g. a 1254 px sheet → ~157 px cells), frames were **scaled** to fit — slightly softer, not redrawn. For pixel-exact frames, export the source at `cols * F` px (1024 px for 8x8 @ 128).
++- Mention any visible colored fringe and offer `--clean-alpha` rather than applying it silently.
++- Cell boundaries use `round(i * width / cols)`, so non-integer cell sizes are handled without drift.
+diff --git a/claude-skills/sprite-sheet-slicer/scripts/slice_spritesheet.py b/claude-skills/sprite-sheet-slicer/scripts/slice_spritesheet.py
+new file mode 100644
+index 0000000..331628d
+--- /dev/null
++++ b/claude-skills/sprite-sheet-slicer/scripts/slice_spritesheet.py
+@@ -0,0 +1,150 @@
++#!/usr/bin/env python3
++"""Slice a grid sprite sheet into fixed-size frames without redrawing the art.
++
++Outputs (in --out):
++  <name>_spritesheet_<F>.png   clean N x M sheet of F x F frames
++  <name>_spritesheet_<F>.json  frame size + animation -> frame indices
++  <name>_frames_<F>.zip        every frame as its own PNG
++  <name>_spriteframes.tres     Godot 4 SpriteFrames resource (with --godot)
++  <name>_preview.html          looping preview of every animation
++
++Example:
++  python slice_spritesheet.py owl.png --name owl --grid 8x8 --frame 128 \
++    --anim egg_idle=1 --anim egg_hatch=2 --anim owl_emerge=3 --anim owl_idle=4 \
++    --anim jump_land=5-6 --anim ticklish_recovery=7-8 --fps 10 --godot
++"""
++import argparse, base64, io, json, os, zipfile
++from PIL import Image
++
++
++def parse_rows(spec):
++    rows = []
++    for part in spec.split(","):
++        if "-" in part:
++            a, b = part.split("-")
++            rows += list(range(int(a), int(b) + 1))
++        else:
++            rows.append(int(part))
++    return [r - 1 for r in rows]  # 1-based in, 0-based out
++
++
++def main():
++    p = argparse.ArgumentParser()
++    p.add_argument("image")
++    p.add_argument("--name", required=True, help="asset name prefix, e.g. owl")
++    p.add_argument("--grid", default="8x8", help="COLSxROWS of the source grid")
++    p.add_argument("--frame", type=int, default=128, help="output frame size in px")
++    p.add_argument("--anim", action="append", default=[],
++                   help="name=rows (1-based, e.g. idle=4 or jump=5-6). Repeatable.")
++    p.add_argument("--fps", type=float, default=10)
++    p.add_argument("--clean-alpha", type=int, default=0,
++                   help="zero out pixels with alpha below this (removes faint colored fringes). 0 = keep art untouched")
++    p.add_argument("--nearest", action="store_true",
++                   help="use nearest-neighbour scaling (true pixel art); default Lanczos")
++    p.add_argument("--godot", action="store_true", help="also write a Godot 4 SpriteFrames .tres")
++    p.add_argument("--res-dir", default="res://",
++                   help="Godot folder the sheet PNG will live in, e.g. res://assets/pets/owl/")
++    p.add_argument("--out", default=".")
++    a = p.parse_args()
++
++    cols, rows = (int(x) for x in a.grid.lower().split("x"))
++    F = a.frame
++    os.makedirs(a.out, exist_ok=True)
++    src = Image.open(a.image).convert("RGBA")
++    W, H = src.size
++    xb = [round(i * W / cols) for i in range(cols + 1)]
++    yb = [round(i * H / rows) for i in range(rows + 1)]
++    scaled = (xb[1] - xb[0]) != F or (yb[1] - yb[0]) != F
++    resample = Image.NEAREST if a.nearest else Image.LANCZOS
++
++    anims = {}
++    for spec in a.anim:
++        n, r = spec.split("=")
++        anims[n] = parse_rows(r)
++    if not anims:
++        anims = {f"row_{r + 1}": [r] for r in range(rows)}
++    row_label = {}
++    for n, rs in anims.items():
++        for i, r in enumerate(rs):
++            row_label.setdefault(r, n if len(rs) == 1 else f"{n}_{chr(97 + i)}")
++
++    sheet = Image.new("RGBA", (F * cols, F * rows), (0, 0, 0, 0))
++    zbuf = io.BytesIO()
++    with zipfile.ZipFile(zbuf, "w", zipfile.ZIP_DEFLATED) as z:
++        for r in range(rows):
++            for c in range(cols):
++                cell = src.crop((xb[c], yb[r], xb[c + 1], yb[r + 1]))
++                if scaled:  # premultiplied resize avoids halo bleed
++                    cell = cell.convert("RGBa").resize((F, F), resample).convert("RGBA")
++                if a.clean_alpha:
++                    px = cell.load()
++                    for y in range(F):
++                        for x in range(F):
++                            if px[x, y][3] < a.clean_alpha:
++                                px[x, y] = (0, 0, 0, 0)
++                sheet.paste(cell, (c * F, r * F))
++                b = io.BytesIO(); cell.save(b, "PNG")
++                z.writestr(f"frames/{row_label.get(r, f'row_{r + 1}')}_{c:02d}.png", b.getvalue())
++
++    base = f"{a.name}_spritesheet_{F}"
++    sheet_path = os.path.join(a.out, base + ".png")
++    sheet.save(sheet_path, optimize=True)
++    with open(os.path.join(a.out, f"{a.name}_frames_{F}.zip"), "wb") as f:
++        f.write(zbuf.getvalue())
++
++    meta = {"image": base + ".png", "frameWidth": F, "frameHeight": F,
++            "columns": cols, "rows": rows, "fps": a.fps,
++            "animations": {n: [r * cols + c for r in rs for c in range(cols)] for n, rs in anims.items()}}
++    with open(os.path.join(a.out, base + ".json"), "w") as f:
++        json.dump(meta, f, indent=1)
++
++    if a.godot:
++        write_godot(os.path.join(a.out, f"{a.name}_spriteframes.tres"), a.res_dir.rstrip("/") + "/" + base + ".png", F, cols, meta, a.fps)
++    write_preview(os.path.join(a.out, f"{a.name}_preview.html"), sheet_path, a.name, F, cols, rows, anims, a.fps)
++
++    print(f"source {W}x{H}, cell ~{W / cols:.1f}px -> {F}px ({'scaled' if scaled else 'exact, no scaling'})")
++    print("wrote", sorted(os.listdir(a.out)))
++
++
++def write_godot(path, png, F, cols, meta, fps):
++    frames = sorted({i for v in meta["animations"].values() for i in v})
++    lines = [f'[gd_resource type="SpriteFrames" load_steps={len(frames) + 2} format=3]', "",
++             f'[ext_resource type="Texture2D" path="{png}" id="1"]', ""]
++    for i in frames:
++        lines += [f'[sub_resource type="AtlasTexture" id="f{i}"]', 'atlas = ExtResource("1")',
++                  f"region = Rect2({(i % cols) * F}, {(i // cols) * F}, {F}, {F})", ""]
++    anims = []
++    for n, idx in meta["animations"].items():
++        fr = ", ".join('{"duration": 1.0, "texture": SubResource("f%d")}' % i for i in idx)
++        anims.append('{"frames": [%s], "loop": true, "name": &"%s", "speed": %s}' % (fr, n, float(fps)))
++    lines += ["[resource]", "animations = [" + ", ".join(anims) + "]", ""]
++    with open(path, "w") as f:
++        f.write("\n".join(lines))
++
++
++def write_preview(path, sheet_path, name, F, cols, rows, anims, fps):
++    data = base64.b64encode(open(sheet_path, "rb").read()).decode()
++    css, cards = [], []
++    for k, (n, rs) in enumerate(anims.items()):
++        seg = 100 / len(rs)
++        kf = []
++        for i, r in enumerate(rs):
++            s, e = i * seg, (i + 1) * seg - 0.001
++            kf.append(f"{s:.3f}%{{background-position:0 -{r * F}px;animation-timing-function:steps({cols},end)}}")
++            kf.append(f"{e:.3f}%{{background-position:-{cols * F}px -{r * F}px}}")
++        css.append(f"@keyframes a{k}{{{''.join(kf)}}}.a{k}{{animation:a{k} {len(rs) * cols / fps}s infinite}}")
++        label = f"row {rs[0] + 1}" if len(rs) == 1 else f"rows {rs[0] + 1}-{rs[-1] + 1}"
++        cards.append(f'<figure><div class="chk"><div class="spr a{k}"></div></div><figcaption>{n}<small>{label}</small></figcaption></figure>')
++    html = f"""<!doctype html><meta charset=utf-8><title>{name} sprites</title><style>
++body{{margin:0;padding:32px;font-family:Georgia,serif;background:#f4efe6;color:#2b2118}}
++.grid{{display:flex;flex-wrap:wrap;gap:20px}}figure{{margin:0;padding:16px;background:#fffaf2;border:1px solid #ddd0bb;border-radius:12px;text-align:center}}
++figcaption{{margin-top:8px;font-weight:600}}small{{display:block;font:12px monospace;color:#5c4a3a}}
++.chk{{width:{F}px;height:{F}px;background:repeating-conic-gradient(#ddd3c2 0 25%,#e9e2d5 0 50%) 0 0/16px 16px}}
++.spr{{width:{F}px;height:{F}px;background:url(data:image/png;base64,{data}) no-repeat;background-size:{cols * F}px {rows * F}px}}
++{''.join(css)}</style><h1>{name} · {F}px frames · {fps:g} fps</h1><div class=grid>{''.join(cards)}</div>"""
++    with open(path, "w") as f:
++        f.write(html)
++
++
++if __name__ == "__main__":
++    main()
+-- 
+2.43.0
+
