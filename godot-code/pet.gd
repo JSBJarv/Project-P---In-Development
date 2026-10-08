@@ -7,7 +7,9 @@
 #   player drag it around and resize it (pinch or mouse wheel), and remembers its
 #   position, size and whether it has hatched. By itself the pet mostly rests and
 #   blinks, and now and then does one thing picked at random from ACTIONS (SECTION 0):
-#   travels left or right, hops, plays a movement, or just keeps blinking.
+#   travels left or right, hops, plays one of its tricks, or just keeps blinking.
+#   On a low battery it does its low-energy movements instead, and at night it sleeps
+#   until it is tapped (LOW ENERGY and SLEEP in SECTION 0).
 #
 # Where it goes:
 #   Attached to the "Pet" node (Node2D), with a child AnimatedSprite2D.
@@ -51,8 +53,9 @@
 #   9. Editor preview                                -> search "SECTION 9"
 #
 # Animation names: egg_idle, egg_hatch, pet_emerge, pet_idle, jump, landing, ticklish,
-#   recovery, move, trick. Inside the game's app the Android wallpaper gets ANIMS and
-#   ACTIONS from this file on every export, so the two always match.
+#   recovery, move, move_left, move_right, trick, low_energy, sleep. Inside the game's
+#   app the Android wallpaper gets ANIMS, ACTIONS and the low-energy and sleep settings
+#   from this file on every export, so the two always match.
 # =====================================================================================
 
 @tool   # lets the script draw a preview of the pet in the editor (SECTION 9)
@@ -63,12 +66,11 @@ extends Node2D
 #           The id is used in saved data, so don't change it after release.
 #           Keep this list in sync with PETS in PetCatalog.kt (Android).
 #           If the folder isn't found, the script also searches the project for a
-#           folder named like the id (e.g. any folder called "owl") and says so.
+#           folder named like the id (e.g. any folder called "dragon") and says so.
 const PETS := {
-	"chibi": "res://Pets/Chibi/frames",
-	 #"fairy": "res://Pets/Fairy/frames",
-	 #"cat": "res://Pets/Cat/frames",
-	#"dog": "res://Pets/Dog/frames",
+	"dragon": "res://pets/dragon",
+	# "cat": "res://pets/cat",
+	# "fox": "res://pets/fox",
 }
 
 # [EDIT] The animations: [name, frames, fps, loop, file names it accepts].
@@ -77,23 +79,23 @@ const PETS := {
 #                The pet's name in front is allowed: "idle" also matches dragon_idle_00,
 #                owl_idle_00, cat_idle_00... Add your own names here if yours differ.
 #   The order of this list is also the order of numbered files (1-8 egg_idle, ...).
-#   Keep in sync with ANIMS in PetCatalog.kt (Android).
+#   pet_idle: 4 sets of 8 frames (idle_a .. idle_d), one blink each, played in a loop.
+#   The wallpaper inside the game's app reads this list on every export.
 const ANIMS := [
 	["egg_idle", 8, 6.0, true, ["egg_idle"]],                   # egg_idle_00..07
 	["egg_hatch", 8, 10.0, false, ["egg_hatch", "egg_hatch_emerge"]],   # egg_hatch_emerge_..
 	["pet_emerge", 8, 10.0, false, ["pet_emerge", "emerge"]],   # dragon_emerge_00..07
-	["pet_idle", 32, 6, true, ["pet_idle", "idle", "blink_1", "blink_2", "blink_3", 
-	"blink_4"]],           # dragon_idle_00..07
-	["jump", 8, 12.0, false, ["jump", "jump_up", "jump_land"]],        # jump_land_a_..
+	["pet_idle", 8, 8.0, true, ["pet_idle", "idle"]],           # idle_a_00..idle_d_07
+	["jump", 8, 12.0, false, ["jump", "jump_land_a", "jump_landing_a"]],        # jump_land_a_..
 	["landing", 8, 12.0, false, ["landing", "jump_land_b", "jump_landing_b"]],  # jump_land_b_..
 	["ticklish", 8, 12.0, false, ["ticklish", "ticklish_recovery_a"]],      # ticklish_recovery_a_..
 	["recovery", 8, 10.0, false, ["recovery", "ticklish_recovery_b"]],      # ticklish_recovery_b_..
-	["move", 32, 8.0, true, ["move", "fly", "walk", "run", "hop"]],    # fly_a_.. / walk_a_..
-	["move_left", 8, 8.0, true, ["move_left", "fly_left", "walk_left", "run_left"]],
-	["move_right", 8, 8.0, true, ["move_right", "fly_right", "walk_right", "run_right"]],    # fly_a_.. / walk_a_..
-	["trick", 16, 8.0, false, ["trick", "extra", "special", "dance", "random_action_a",
-	"random_action_b", "random_action_2_a", "random_action_2_b", "playing_around_a", "playing_around_b",
-	"move", "fly", "walk", "run", "hop"]],     # trick_a_.. trick_b_..
+	["move", 32, 12.0, true, ["move", "fly", "walk", "run", "hop"]],    # fly_a_.. / walk_a_..
+	["move_left", 8, 12.0, true, ["move_left", "fly_left", "walk_left", "run_left"]],
+	["move_right", 8, 12.0, true, ["move_right", "fly_right", "walk_right", "run_right"]],
+	["trick", 16, 10.0, false, ["trick", "extra", "special", "dance"]],     # trick_a_.. trick_b_..
+	["low_energy", 8, 8.0, false, ["low_energy", "low_battery", "tired"]],    # low_energy_..
+	["sleep", 8, 6.0, true, ["sleep", "sleeping", "asleep"]],                 # sleep_00..
 ]
 
 # [EDIT] WHAT THE PET DOES BY ITSELF. Most of the time the hatched pet rests and blinks
@@ -116,9 +118,9 @@ const ANIMS := [
 #        The wallpaper picks both up from this file on the next export.
 const ACTIONS := [
 	["blink", "", 4],          # keep blinking a while longer
-	["travel", "move", 2],     # fly / walk / run to the left or right
-	["hop", "jump", 1],        # jump on the spot (jump, then landing)
-	["play", "trick", 2],      # the 16-frame movement
+	["travel", "move", 3],     # fly / walk / run to the left or right
+	["hop", "jump", 2],        # jump on the spot (jump, then landing)
+	["play", "trick", 2],      # one of its tricks (see ANIM_SETS below)
 ]
 # [EDIT] Seconds of resting and blinking between two actions (a random time in this range).
 const ACTION_WAIT_MIN := 3.0
@@ -129,6 +131,37 @@ const BLINK_FRAMES := 8
 # [EDIT] The hop on the spot: how high (as a share of the pet's height) and how long.
 const HOP_HEIGHT := 0.5
 const HOP_SECONDS := 0.7
+
+# [EDIT] MOVEMENTS WITH SEVERAL VERSIONS. An animation listed here is not one long
+#        movement but several separate ones in a row, each this many frames long: with
+#        "trick": 8, trick_a_00..07 is one trick and trick_b_00..07 another. When the
+#        pet plays it, it picks ONE version at random, plays just that one, and goes
+#        back to resting. Add more rows of frames (trick_c_.., trick_d_..) and they
+#        join the choice by themselves.
+#        Remove a line to play that animation from its first to its last frame again.
+const ANIM_SETS := {
+	"trick": 8,
+	"low_energy": 8,
+}
+
+# [EDIT] LOW ENERGY. When the phone's battery is at or below LOW_BATTERY_PERCENT and
+#        the phone is not charging, the pet picks from this list instead of ACTIONS:
+#        it does its low-energy movements instead of travelling, hopping and tricks.
+#        Same kind of lines as ACTIONS. A pet without low_energy frames keeps ACTIONS.
+const LOW_BATTERY_PERCENT := 15
+const LOW_ENERGY_ACTIONS := [
+	["blink", "", 3],              # keep blinking a while longer
+	["play", "low_energy", 4],     # one of its low-energy movements
+]
+
+# [EDIT] SLEEP. Between these hours of the phone's clock (24-hour clock: 23 = 11 PM,
+#        6 = 6 AM) the hatched pet sleeps: it plays "sleep" instead of pet_idle and
+#        does nothing by itself. Tapping it wakes it up for AWAKE_MINUTES; every
+#        further tap keeps it awake that long again. Then it goes back to sleep.
+#        A pet without sleep frames never sleeps.
+const SLEEP_FROM_HOUR := 23
+const SLEEP_UNTIL_HOUR := 6
+const AWAKE_MINUTES := 5.0
 
 # Frame file names - any of these styles works:
 #   A) Named by animation (what the sprite-sheet-slicer skill exports), e.g. the dragon:
@@ -146,7 +179,10 @@ const HOP_SECONDS := 0.7
 #                                                     when the pet travels that way
 #        fly_a_00.png ... fly_d_07.png             -> move (or walk_, run_, hop_): one set
 #                                                     for both ways, mirrored as needed
-#        trick_a_00.png ... trick_b_07.png         -> trick (the 16-frame movement)
+#        trick_a_00.png ... trick_b_07.png         -> trick: each row is one trick, and
+#                                                     one is picked at a time (ANIM_SETS)
+#        low_energy_a_00.png ...                   -> low_energy: played on a low battery
+#        sleep_00.png ...                          -> sleep: its resting animation at night
 #      Each file goes to the animation whose name it matches (see ANIMS above).
 #   B) Only numbered, in the order of ANIMS: 01.png ... 64.png, frame_1 ... frame_64.
 #      The first 8 files go to egg_idle, the next 8 to egg_hatch, and so on.
@@ -164,13 +200,13 @@ const HOP_SECONDS := 0.7
 #        Make it bigger if the pet is hard to grab.
 # [EDIT] PET SIZE: 1 = the PNG's own size, 2 = twice as big. Starting size;
 #        players can resize it by pinching (phone) or mouse wheel (PC), see SECTION 4b.
-@export var pet_size: float = 1.0:
+@export var pet_size: float = 2.0:
 	set(value):
 		pet_size = value
 		scale = Vector2.ONE * pet_size
 # [EDIT] Smallest and biggest size players can resize the pet to.
 @export var min_size: float = 1.0
-@export var max_size: float = 3.0
+@export var max_size: float = 5.0
 # [EDIT] How much one mouse-wheel step changes the size on PC.
 const WHEEL_STEP := 0.25
 # [EDIT] TRAVELLING: moving speed in pixels per second, and how high flying pets bob in
@@ -186,6 +222,12 @@ const WHEEL_STEP := 0.25
 @export var grab_radius: float = 56.0
 # [EDIT] How many taps on the egg before it hatches.
 @export var taps_to_hatch: int = 3
+# [EDIT] FOR TESTING: pretend the battery is at this percent (e.g. 10 to see the low-
+#        energy movements) and pretend it is this hour (e.g. 23 to see the pet sleep).
+#        -1 = use the real battery and the real clock. Set them in the Inspector and
+#        put them back to -1 before you export.
+@export var test_battery_percent: int = -1
+@export var test_hour: int = -1
 # [EDIT] How far a finger can move and still count as a tap instead of a drag.
 const TAP_SLOP := 12.0
 # Where the save file lives (Godot's private user folder).
@@ -219,6 +261,8 @@ var _move_bobs := false         # true if this pet's moving frames are fly_ fram
 var _hopping := false           # the pet is in the air, hopping on the spot
 var _hop_time := 0.0            # seconds since it took off
 var _hop_base_y := 0.0          # its height before the hop
+var _awake_until := 0.0         # woken up at night: stays awake until this time
+var _no_battery_info := false   # the phone side can't tell the battery level (old add-on)
 var _frame_size := 128      # size of one frame, measured from the first PNG in _build_frames()
 
 # ===== SECTION 3: START-UP ===========================================================
@@ -387,8 +431,16 @@ func _process(delta: float) -> void:
 		return
 	if not hatched or _busy or _dragging or _pinching or sprite.sprite_frames == null:
 		return
-	if String(sprite.animation) != "pet_idle":
+	# Falling asleep or waking up: the resting animation it should have now is another
+	# one than it is playing (the clock passed SLEEP_FROM_HOUR, or its time awake is over)
+	var playing := String(sprite.animation)
+	var rest := _rest_anim()
+	if (playing == "pet_idle" or playing == "sleep") and playing != rest:
+		if playing == "sleep" or sprite.frame % BLINK_FRAMES == 0:
+			_play_idle()               # (an awake pet finishes its blink first)
 		return
+	if playing != "pet_idle":
+		return                         # asleep: it does nothing by itself
 	_next_move -= delta
 	if _next_move > 0.0:
 		return
@@ -406,7 +458,7 @@ func _do_random_action() -> void:
 	_reset_move_timer()
 	var choices := []
 	var total := 0.0
-	for a in ACTIONS:
+	for a in _actions_now():           # ACTIONS, or LOW_ENERGY_ACTIONS on a low battery
 		if float(a[2]) > 0.0 and (a[0] == "blink" or _can_do(a[0], a[1])):
 			choices.append(a)
 			total += float(a[2])
@@ -430,9 +482,65 @@ func _do_action(kind: String, anim: String) -> void:
 			if sprite.sprite_frames.get_animation_loop(anim):
 				return                     # a looping animation would never end
 			_busy = true                   # no tickling until it has finished
-			sprite.play(anim)              # ends in _on_animation_finished -> resting
+			sprite.play(_one_version(anim))    # e.g. "trick#2"; when it ends -> resting
 		_:
 			pass                           # "blink": it simply keeps resting
+
+# [LOGIC] An animation listed in ANIM_SETS has several versions, built when the pet is
+#         loaded: "trick#1", "trick#2", ... This picks one of them at random. For any
+#         other animation it returns the animation itself.
+func _one_version(anim: String) -> String:
+	var count := 0
+	while sprite.sprite_frames.has_animation("%s#%d" % [anim, count + 1]):
+		count += 1
+	if count == 0:
+		return anim
+	return "%s#%d" % [anim, randi_range(1, count)]
+
+# [LOGIC] The list the pet picks its next action from: LOW_ENERGY_ACTIONS while the
+#         battery is low and the pet has frames for something in it, otherwise ACTIONS.
+func _actions_now() -> Array:
+	if _is_low_energy():
+		for a in LOW_ENERGY_ACTIONS:
+			if a[0] != "blink" and float(a[2]) > 0.0 and _can_do(a[0], a[1]):
+				return LOW_ENERGY_ACTIONS
+	return ACTIONS
+
+# Is the phone's battery low (and not charging)? Always false on the computer, unless
+# test_battery_percent is set in the Inspector.
+# On the phone the battery is read through the wallpaper add-on (WallpaperBridge.kt).
+func _is_low_energy() -> bool:
+	if test_battery_percent >= 0:
+		return test_battery_percent <= LOW_BATTERY_PERCENT
+	if _no_battery_info or not Engine.has_singleton("ProjectPWallpaper"):
+		return false
+	var phone = Engine.get_singleton("ProjectPWallpaper")
+	var percent = phone.call("batteryPercent")
+	if not (percent is int):
+		_no_battery_info = true        # an older add-on without battery info: stop asking
+		return false
+	if percent < 0 or phone.call("isCharging") == true:
+		return false
+	return percent <= LOW_BATTERY_PERCENT
+
+# [LOGIC] Is it the pet's bedtime right now? True between SLEEP_FROM_HOUR and
+#         SLEEP_UNTIL_HOUR by the phone's clock, unless a tap woke it up a moment ago.
+func _is_sleep_time() -> bool:
+	if Time.get_unix_time_from_system() < _awake_until:
+		return false                   # woken up: awake for a while
+	var hour: int = test_hour if test_hour >= 0 else Time.get_time_dict_from_system()["hour"]
+	if SLEEP_FROM_HOUR <= SLEEP_UNTIL_HOUR:
+		return hour >= SLEEP_FROM_HOUR and hour < SLEEP_UNTIL_HOUR
+	return hour >= SLEEP_FROM_HOUR or hour < SLEEP_UNTIL_HOUR     # (through midnight)
+
+# The animation the pet rests with right now: the egg's idle before hatching, "sleep"
+# at night (if it has sleep frames), otherwise pet_idle (blinking).
+func _rest_anim() -> String:
+	if not hatched:
+		return "egg_idle"
+	if _is_sleep_time() and _has_frames("sleep"):
+		return "sleep"
+	return "pet_idle"
 
 # Does this pet have frames for an animation?
 func _has_frames(anim: String) -> bool:
@@ -552,6 +660,13 @@ func _on_tap() -> void:
 				_save()
 				_play_idle()
 	else:
+		# Any tap keeps the pet awake for AWAKE_MINUTES (this only matters at night)
+		var was_asleep := String(sprite.animation) == "sleep"
+		_awake_until = Time.get_unix_time_from_system() + AWAKE_MINUTES * 60.0
+		if was_asleep:
+			_play_idle()               # it wakes up: back to blinking
+			_reset_move_timer()
+			return
 		_busy = true
 		sprite.play("ticklish")
 
@@ -587,10 +702,11 @@ func _on_animation_finished() -> void:
 			if not _moving and not _hopping:
 				_play_idle()
 
-# Go back to resting: pet_idle after hatching, egg_idle before.
+# Go back to resting: egg_idle before hatching; after it pet_idle (blinking), or
+# "sleep" at night (see _rest_anim in SECTION 4c).
 func _play_idle() -> void:
 	_busy = false
-	sprite.play("pet_idle" if hatched else "egg_idle")
+	sprite.play(_rest_anim())
 
 # ===== SECTION 6: HELPERS ============================================================
 # Converts a touch position on the screen into a position in the game world.
@@ -649,6 +765,24 @@ func _build_frames(folder: String) -> SpriteFrames:
 		summary.append("%s %d" % [anim_name, paths.size()])
 		if paths.is_empty():
 			push_warning("Project P: no frames found for '%s'." % anim_name)
+	# Movements with several versions (ANIM_SETS, SECTION 0): besides the whole animation,
+	# one extra animation per version is made, named "trick#1", "trick#2", ...
+	for set_name in ANIM_SETS:
+		var per_version: int = ANIM_SETS[set_name]
+		var set_paths: Array = groups.get(set_name, [])
+		if per_version <= 0 or not frames.has_animation(set_name):
+			continue
+		@warning_ignore("integer_division")
+		var versions: int = set_paths.size() / per_version
+		for v in versions:
+			var version_name := "%s#%d" % [set_name, v + 1]
+			frames.add_animation(version_name)
+			frames.set_animation_speed(version_name, frames.get_animation_speed(set_name))
+			frames.set_animation_loop(version_name, frames.get_animation_loop(set_name))
+			for path in set_paths.slice(v * per_version, (v + 1) * per_version):
+				frames.add_frame(version_name, load(path))
+		if versions > 0:
+			summary.append("(%s: %d versions)" % [set_name, versions])
 	print("Project P: frames per animation: " + ", ".join(summary))
 	for a in ANIMS:                          # measure the frame size from the first frame
 		var first: Array = groups.get(a[0], [])
