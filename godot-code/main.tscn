@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://cqow47bch5ocs"]
+
+[ext_resource type="Script" uid="uid://c3be8mx0hhg41" path="res://pet.gd" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://ceivdkobl3go2" path="res://pet_picker.gd" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://chblndo5f5h54" path="res://main_menu.gd" id="3_h2yge"]
+
+[node name="Main" type="Node2D" unique_id=509920108]
+
+[node name="Pet" type="Node2D" parent="." unique_id=1739927752]
+position = Vector2(360, 800)
+scale = Vector2(2, 2)
+script = ExtResource("1_ig7tw")
+pet_size = 2.0
+max_size = 5.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Pet" unique_id=125181274]
+
+[node name="Pet Picker" type="CanvasLayer" parent="." unique_id=1719804369]
+script = ExtResource("2_0xm2m")
+
+[node name="Main Menu" type="CanvasLayer" parent="." unique_id=110168468]
+script = ExtResource("3_h2yge")
