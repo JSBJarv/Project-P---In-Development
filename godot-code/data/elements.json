@@ -1,0 +1,9 @@
+{
+  "_about": "The six elements. 'strong_against' gets balance.element_strong (x1.25); the reverse direction gets element_weak (x0.8). colours are used for effects, auras and the recolour shader.",
+  "fire":  {"name": "Fire",  "strong_against": ["wind"],  "color": "#ff7a3d", "light": "#ffd08a"},
+  "wind":  {"name": "Wind",  "strong_against": ["earth"], "color": "#5fd6c0", "light": "#c9f5ec"},
+  "earth": {"name": "Earth", "strong_against": ["water"], "color": "#c49a52", "light": "#ecd7a6"},
+  "water": {"name": "Water", "strong_against": ["fire"],  "color": "#4f9be8", "light": "#b9dcff"},
+  "lunar": {"name": "Lunar", "strong_against": ["solar"], "color": "#a98ae6", "light": "#e3d6ff"},
+  "solar": {"name": "Solar", "strong_against": ["lunar"], "color": "#f2c440", "light": "#fff0b3"}
+}

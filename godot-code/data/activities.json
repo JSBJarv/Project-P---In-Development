@@ -1,0 +1,15 @@
+{
+  "_about": "Real-life activity -> Training Points. 'per' is the unit the TP are given for; split shares the TP between stats. verified = comes from Health Connect / HealthKit / the in-app timer; manual entries get balance.training.manual_entry_weight.",
+  "focus_session":   {"name": "Study or deep work", "tp": 2, "per": "25 min",       "stats": {"int": 1.0},            "source": "focus timer"},
+  "reading":         {"name": "Reading",            "tp": 1, "per": "20 min",       "stats": {"int": 1.0},            "source": "focus timer (reading)"},
+  "run":             {"name": "Running",            "tp": 3, "per": "km",           "stats": {"agi": 1.0},            "source": "exercise session"},
+  "walk_steps":      {"name": "Walking",            "tp": 1, "per": "2000 steps",   "stats": {"agi": 0.5, "vit": 0.5}, "source": "step count"},
+  "cardio":          {"name": "Cycling, sports",    "tp": 2, "per": "15 min",       "stats": {"agi": 1.0},            "source": "exercise session"},
+  "swim":            {"name": "Swimming",           "tp": 2, "per": "15 min",       "stats": {"agi": 0.5, "str": 0.5}, "source": "exercise session"},
+  "strength":        {"name": "Gym, calisthenics, HIIT", "tp": 3, "per": "15 min",  "stats": {"str": 1.0},            "source": "exercise session or workout log"},
+  "yoga":            {"name": "Yoga, stretching",   "tp": 2, "per": "15 min",       "stats": {"agi": 0.5, "spi": 0.5}, "source": "exercise session"},
+  "sleep":           {"name": "Sleep 7-9 h",        "tp": 4, "per": "night",        "stats": {"vit": 1.0},            "source": "sleep data or wake-up check-in"},
+  "water_meal":      {"name": "Water, healthy meal", "tp": 1, "per": "log", "daily_max": 3, "stats": {"vit": 1.0},    "source": "self-log"},
+  "meditation":      {"name": "Meditation, journaling", "tp": 2, "per": "10 min",   "stats": {"spi": 1.0},            "source": "in-app timer or journal"},
+  "task_done":       {"name": "Finishing to-dos",   "tp": 1, "per": "task", "daily_max": 5, "stats": {"spi": 1.0},   "source": "in-app task list"}
+}

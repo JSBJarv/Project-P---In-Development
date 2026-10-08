@@ -54,15 +54,16 @@ signal cancelled                    # the grid was closed without picking
 @export var change_button_text := "Change pet"
 @export var wallpaper_button_text := "Wallpaper"
 # [EDIT] The folder with the pets' splash art: one picture per pet, named after the
-#        pet's id in PETS (pet.gd), e.g. dragon.png for "dragon".
+#        pet's id in PETS (pet.gd), e.g. nocti.png for "nocti".
 const SPLASH_FOLDER := "res://menu/splash"
 # [EDIT] Grid layout: how many pets per row, and the size of each pet's tile (pixels of
-#        the 720-wide screen). 2 x 300px with 6 pets = 3 rows, no scrolling needed.
-#        For 3 per row use columns 3 and TILE_SIZE Vector2(210, 260).
-#        Splash art drawn in the tile's shape (here 300 x 330, or a multiple such as
-#        600 x 660) fills its tile exactly; other shapes are cut to fit, never stretched.
-@export var columns := 2
-const TILE_SIZE := Vector2(300, 330)
+#        the 720-wide screen). 3 x 210px with the 12 pets = 4 rows, no scrolling.
+#        For 2 per row use columns 2 and TILE_SIZE Vector2(300, 330).
+#        Splash art drawn in the tile's shape (here 210 x 240; draw it at 420 x 480 so
+#        it stays sharp on phones) fills its tile exactly; other shapes are cut to fit,
+#        never stretched.
+@export var columns := 3
+const TILE_SIZE := Vector2(210, 240)
 const GAP := 16
 const FONT_SIZE := 28
 # [EDIT] Show each pet's name over the bottom of its splash art. Set to false if the
@@ -285,7 +286,7 @@ func _choose(id: String) -> void:
 # frame in another colour.
 # [FIX] A tile shows a small pet frame instead of your splash art: the picture isn't in
 #       SPLASH_FOLDER, or its name isn't exactly the pet's id in PETS (dragon.png for
-#       "dragon", same small letters).
+#       "nocti", same small letters).
 func _make_tile(id: String, folder: String) -> Control:
 	var tile := Button.new()
 	tile.flat = true                                      # no grey button look

@@ -1,0 +1,43 @@
+{
+  "_about": "Every battle and training number in one place. Change a value here and the game uses it; no code changes. Formulas are explained in data/README.md.",
+
+  "hp": {"base": 480, "per_vit": 5, "per_str": 1.5, "per_level": 15},
+  "mana": {"base": 100, "per_spi": 4, "per_int": 2},
+  "mana_regen": {"base": 10, "per_spi": 0.3},
+  "speed": {"per_agi": 1.0, "per_level": 2},
+
+  "block": {"cap": 0.35, "k": 300, "damage_taken": 0.5, "physical_only": true},
+  "dodge": {"cap": 0.30, "k": 400},
+  "crit": {"base": 0.05, "extra": 0.25, "k": 500, "cap": 0.30},
+  "crit_damage": {"base": 1.5, "per_str": 0.0005, "cap": 2.0},
+  "guard": {"per_str": 0.3, "per_vit": 0.6},
+  "ward": {"per_int": 0.5, "per_spi": 0.5},
+  "defense_k": 300,
+
+  "damage_scale": 1.2,
+  "damage_random": [0.95, 1.05],
+  "element_strong": 1.25,
+  "element_weak": 0.8,
+  "same_element_bonus": 0.15,
+
+  "status_chance_per_point": 0.001,
+  "status_chance_min": 0.05,
+  "status_chance_max": 0.95,
+
+  "spirit": {"max": 100, "per_turn": 5, "per_damage_taken": 100, "per_damage_dealt": 50, "spi_bonus_per_point": 0.005},
+
+  "basic_attack": {"name": "Basic Strike", "str": 0.6, "agi": 0.4, "base": 10},
+
+  "battle": {"max_rounds": 30, "level_default": 10},
+
+  "training": {
+    "cost_base": 1.0,
+    "cost_per_point": 0.02,
+    "daily_soft_cap": 12,
+    "daily_hard_cap": 20,
+    "after_soft_cap": 0.5,
+    "manual_entry_weight": 0.5,
+    "favoured_stat_bonus": 0.10,
+    "start_stats": {"str": 10, "int": 10, "agi": 10, "vit": 10, "spi": 10}
+  }
+}

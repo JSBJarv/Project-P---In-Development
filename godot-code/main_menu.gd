@@ -6,7 +6,9 @@
 #     - your animated background (16 frames, or however many you put in the folder),
 #     - a "Pet Selection" button    -> opens the pet grid (pet_picker.gd); choosing a
 #                                      pet closes the menu and shows that pet,
-#     - a "Wallpaper Selection" button -> opens the wallpaper setup on the phone.
+#     - a "Wallpaper Selection" button -> opens the wallpaper setup on the phone,
+#     - a "Dojo" button             -> the battle (battle/battle.tscn), in landscape,
+#                                      with the pet that is chosen now.
 #   Each button plays its own frames (3 by default) when it is tapped or clicked, and
 #   then does its job.
 #   While the menu or the pet grid is open, the pet (or its egg) is hidden and paused.
@@ -23,6 +25,7 @@
 #   res://menu/buttons/      pet_selection_00.png ... _02.png        Pet Selection
 #                            wallpaper_selection_00.png ... _02.png  Wallpaper Selection
 #                            menu_00.png ... _02.png          the small Menu button
+#                            dojo_00.png ... _02.png          Dojo
 #   res://menu/splash/       dragon.png, cat.png ...          see pet_picker.gd
 #
 # How to find things:
@@ -69,6 +72,9 @@ const BUTTON_FOLDER := "res://menu/buttons"
 const PET_BUTTON := "pet_selection"
 const WALLPAPER_BUTTON := "wallpaper_selection"
 const MENU_BUTTON := "menu"
+const DOJO_BUTTON := "dojo"
+# [EDIT] The battle scene the Dojo button opens.
+const BATTLE_SCENE := "res://battle/battle.tscn"
 # [EDIT] How wide the two big buttons are drawn, in pixels of the 720-wide screen. The
 #        height follows from your picture's shape.
 @export var button_width := 440.0
@@ -86,6 +92,7 @@ const MENU_BUTTON := "menu"
 @export var pet_button_text := "Pet Selection"
 @export var wallpaper_button_text := "Wallpaper Selection"
 @export var menu_button_text := "Menu"
+@export var dojo_button_text := "Dojo"
 # [EDIT] Message shown when Wallpaper Selection is used on the computer.
 @export var computer_notice := "The wallpaper setup opens on the phone."
 
@@ -180,6 +187,7 @@ func _build_menu() -> void:
 		_open_pet_selection))
 	column.add_child(_make_button(WALLPAPER_BUTTON, wallpaper_button_text, button_width,
 		_open_wallpaper_selection))
+	column.add_child(_make_button(DOJO_BUTTON, dojo_button_text, button_width, _open_dojo))
 	# A thin strip across the screen at the chosen height; the buttons are centred on it
 	var holder := CenterContainer.new()
 	holder.anchor_left = 0.0
@@ -350,6 +358,19 @@ func _open_wallpaper_selection() -> void:
 		Engine.get_singleton(WALLPAPER_PLUGIN).openWallpaperSetup()
 	else:
 		_show_notice(computer_notice)
+
+# [LOGIC] Dojo: the chosen pet fights a random other pet (battle/battle_screen.gd).
+#         The phone turns to landscape for the fight and back to portrait after.
+# [FIX] "Battle scene not found": battle/battle.tscn must be in the project.
+func _open_dojo() -> void:
+	if not ResourceLoader.exists(BATTLE_SCENE):
+		_show_notice("Battle scene not found: %s" % BATTLE_SCENE)
+		return
+	var current: String = pet.get("pet_id") if pet != null else ""
+	var data := get_node_or_null("/root/GameData")
+	if data != null:
+		data.battle_request = {"player": current, "opponent": ""}
+	get_tree().change_scene_to_file(BATTLE_SCENE)
 
 # Shows a short message near the bottom of the menu for a few seconds.
 func _show_notice(text: String) -> void:
