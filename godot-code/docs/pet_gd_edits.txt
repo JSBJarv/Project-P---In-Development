@@ -1,0 +1,464 @@
+HOW TO UPDATE YOUR OWN pet.gd BY HAND
+=====================================
+Fourteen edits. Each one says what to look for (use Ctrl+F in Godot's script editor) and what
+to put there. Do them in the order given. Copy the code from THIS text file (not from the
+PDF): the lines start with tab characters, which GDScript needs.
+
+If you would rather not edit by hand: the file pet.gd that comes with this update already
+has these fourteen edits. If you use it, put your own pets and folders back into its PETS list
+at the top, and redo any other changes you made in your own file.
+
+Afterwards press Ctrl+S and F5. The Output panel should show
+    Project P: frames per animation: egg_idle 8, ... move 32, trick 16
+(trick 0 until you add those frames; the pet then simply never picks that action.)
+
+EDITS 8 to 10 are for the egg: its hatching and the pet coming out are now ONE animation of
+8 frames named egg_hatch_emerge_00 ... egg_hatch_emerge_07. If you already made edits 1 to 7,
+do only 8, 9 and 10. Afterwards the Output line shows egg_hatch 8 and pet_emerge 0, and a
+yellow "no frames found for 'pet_emerge'" line, which is expected.
+
+EDITS 11 to 14 make the pet travel with its move_left_.. frames when it goes left and its
+move_right_.. frames when it goes right. If you already made edits 1 to 10, do only 11 to
+14. A yellow "no frames found for 'move'" line is then expected for pets that only
+have move_left and move_right frames.
+
+==========================================================================================
+EDIT 1 of 14 - SECTION 0: add the new animation to ANIMS
+==========================================================================================
+Find this line (Ctrl+F: "fly_a_.. / walk_a_..") and REPLACE it with the two lines below.
+If your 16 frames have another name than trick_a_00 ... trick_b_07 (or trick_00 ... trick_15),
+add that name, without the number, to the list in the new line, e.g. "dance".
+
+----- FIND -----
+	["move", 32, 12.0, true, ["move", "fly", "walk", "run", "hop"]],    # fly_a_.. / walk_a_..
+
+----- PUT THIS THERE -----
+	["move", 32, 12.0, true, ["move", "fly", "walk", "run", "hop"]],    # fly_a_.. / walk_a_..
+	["trick", 16, 10.0, false, ["trick", "extra", "special", "dance"]],     # trick_a_.. trick_b_..
+
+==========================================================================================
+EDIT 2 of 14 - SECTION 0: add the list of things the pet does by itself
+==========================================================================================
+Find this line (Ctrl+F: "# Frame file names - any") and PASTE the block below ABOVE it.
+
+----- FIND -----
+# Frame file names - any of these styles works:
+
+----- PUT THIS THERE -----
+# [EDIT] WHAT THE PET DOES BY ITSELF. Most of the time the hatched pet rests and blinks
+#        (pet_idle: 4 sets of 8 frames, one blink each). After a random wait it picks ONE
+#        line below at random, does it, and goes back to resting and blinking.
+#        One line per action: [what it does, animation, weight]
+#          "blink"  = nothing new: it keeps resting and blinking (makes the idle longer)
+#          "travel" = goes to a random spot on the left or right with this animation,
+#                     facing the way it goes (fly_ frames bob in the air)
+#          "hop"    = jumps up on the spot with this animation, then plays "landing"
+#          "play"   = plays this animation once where it stands
+#        weight = how often it is picked compared with the others: 4 is picked four
+#                 times as often as 1. Use 0 to switch a line off.
+#        An action whose animation has no frames for this pet is skipped.
+# [ADD ACTION] To add your own movement:
+#        1. Add its animation to ANIMS above, with loop = false, e.g.
+#             ["spin", 8, 12.0, false, ["spin"]],        # spin_00..07
+#        2. Add a line here, e.g.
+#             ["play", "spin", 2],
+#        The wallpaper picks both up from this file on the next export.
+const ACTIONS := [
+	["blink", "", 4],          # keep blinking a while longer
+	["travel", "move", 3],     # fly / walk / run to the left or right
+	["hop", "jump", 2],        # jump on the spot (jump, then landing)
+	["play", "trick", 2],      # the 16-frame movement
+]
+# [EDIT] Seconds of resting and blinking between two actions (a random time in this range).
+const ACTION_WAIT_MIN := 3.0
+const ACTION_WAIT_MAX := 7.0
+# [EDIT] How many frames one blink has. An action starts between two blinks, never in the
+#        middle of one.
+const BLINK_FRAMES := 8
+# [EDIT] The hop on the spot: how high (as a share of the pet's height) and how long.
+const HOP_HEIGHT := 0.5
+const HOP_SECONDS := 0.7
+
+# Frame file names - any of these styles works:
+
+==========================================================================================
+EDIT 3 of 14 - SECTION 1: delete the two waiting-time lines
+==========================================================================================
+Find these two lines (Ctrl+F: "move_wait_min") and DELETE them. Delete ONLY these two lines.
+(ACTION_WAIT_MIN and ACTION_WAIT_MAX from EDIT 2 replace them.)
+
+----- DELETE THESE TWO LINES -----
+@export var move_wait_min := 8.0
+@export var move_wait_max := 20.0
+
+----- LEAVE THE LINES AROUND THEM AS THEY ARE -----
+Afterwards this part of SECTION 1 must still contain these three lines:
+@export var move_speed := 180.0
+@export var move_bob := 12.0
+@export var move_frames_face_right := true
+If one of them is missing, type it back in (no tab in front).
+
+==========================================================================================
+EDIT 4 of 14 - SECTION 2: three new lines of pet state
+==========================================================================================
+Find this line (Ctrl+F: "var _move_bobs") and REPLACE it with the lines below.
+
+----- FIND -----
+var _move_bobs := false         # true if this pet's moving frames are fly_ frames
+
+----- PUT THIS THERE -----
+var _move_bobs := false         # true if this pet's moving frames are fly_ frames
+var _hopping := false           # the pet is in the air, hopping on the spot
+var _hop_time := 0.0            # seconds since it took off
+var _hop_base_y := 0.0          # its height before the hop
+
+==========================================================================================
+EDIT 5 of 14 - SECTION 4c: replace the whole section
+==========================================================================================
+Select everything FROM the line
+    # ===== SECTION 4c: RANDOM MOVING ====...
+DOWN TO (but not including) the line
+    # [LOGIC] What a tap on the pet does.
+and REPLACE it with the block below. (In your file that is the old _process, _reset_move_timer,
+_start_moving, _move_step and _stop_moving.)
+
+----- PUT THIS THERE -----
+# ===== SECTION 4c: WHAT THE PET DOES BY ITSELF =======================================
+# [LOGIC] While the hatched pet rests (pet_idle, blinking) and nobody is touching it, a
+#         timer runs down (ACTION_WAIT_MIN..ACTION_WAIT_MAX seconds). Then, between two
+#         blinks, it picks one action from ACTIONS (SECTION 0) at random, does it, and
+#         goes back to resting. The timer starts again.
+func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
+	if _moving:
+		_move_step(delta)
+		return
+	if _hopping:
+		if _dragging:                  # grabbed in the air: put it down, the drag takes over
+			_hopping = false
+			global_position.y = _hop_base_y
+			_play_idle()
+		else:
+			_hop_step(delta)
+		return
+	if not hatched or _busy or _dragging or _pinching or sprite.sprite_frames == null:
+		return
+	if String(sprite.animation) != "pet_idle":
+		return
+	_next_move -= delta
+	if _next_move > 0.0:
+		return
+	if sprite.frame % BLINK_FRAMES != 0:
+		return                         # let the current blink finish first
+	_do_random_action()
+
+# Picks a new random wait before the next action.
+func _reset_move_timer() -> void:
+	_next_move = randf_range(ACTION_WAIT_MIN, ACTION_WAIT_MAX)
+
+# [LOGIC] Picks one action from ACTIONS at random (by weight) and starts it.
+#         Actions this pet has no frames for are left out.
+func _do_random_action() -> void:
+	_reset_move_timer()
+	var choices := []
+	var total := 0.0
+	for a in ACTIONS:
+		if float(a[2]) > 0.0 and (a[0] == "blink" or _has_frames(a[1])):
+			choices.append(a)
+			total += float(a[2])
+	var pick := randf() * total
+	for a in choices:
+		pick -= float(a[2])
+		if pick <= 0.0:
+			_do_action(a[0], a[1])
+			return
+
+# Starts one action. `kind` is the first word of its line in ACTIONS.
+# [FIX] An action never happens: read the "frames per animation" line in the Output
+#       panel. Its animation must have more than 0 frames.
+func _do_action(kind: String, anim: String) -> void:
+	match kind:
+		"travel":
+			_start_moving(anim)
+		"hop":
+			_start_hop(anim)
+		"play":
+			if sprite.sprite_frames.get_animation_loop(anim):
+				return                     # a looping animation would never end
+			_busy = true                   # no tickling until it has finished
+			sprite.play(anim)              # ends in _on_animation_finished -> resting
+		_:
+			pass                           # "blink": it simply keeps resting
+
+# Does this pet have frames for an animation?
+func _has_frames(anim: String) -> bool:
+	return sprite.sprite_frames != null and sprite.sprite_frames.has_animation(anim) \
+		and sprite.sprite_frames.get_frame_count(anim) > 0
+
+# "travel": sets off towards a random spot on the left or right.
+func _start_moving(anim: String = "move") -> void:
+	var view := get_viewport_rect().size
+	var half := _frame_size * 0.5 * scale.x
+	var target := randf_range(half, view.x - half)
+	if absf(target - global_position.x) < view.x * 0.25:
+		# Too short a trip: go towards the farther side of the screen instead
+		target = half if global_position.x > view.x / 2.0 else view.x - half
+	_move_target_x = target
+	_move_base_y = global_position.y
+	_move_time = 0.0
+	_moving = true
+	_busy = true                       # no tickling while it's on the move
+	# Only pets whose moving frames are named fly_ bob in the air
+	var first := sprite.sprite_frames.get_frame_texture(anim, 0)
+	_move_bobs = first.resource_path.get_file().to_lower().begins_with("fly")
+	var going_left := target < global_position.x
+	sprite.flip_h = (going_left == move_frames_face_right)   # face the way it goes
+	sprite.play(anim)
+
+# Moves the pet a little each frame until it reaches its spot.
+func _move_step(delta: float) -> void:
+	_move_time += delta
+	var step := move_speed * delta
+	var gap := _move_target_x - global_position.x
+	if absf(gap) <= step:
+		global_position = Vector2(_move_target_x, _move_base_y)
+		_stop_moving()
+		return
+	global_position.x += signf(gap) * step
+	if _move_bobs:
+		global_position.y = _move_base_y - absf(sin(_move_time * 3.0)) * move_bob * scale.y
+
+# Stops: back to resting, facing forward, position saved, next action scheduled.
+func _stop_moving() -> void:
+	_moving = false
+	global_position.y = _move_base_y
+	sprite.flip_h = false
+	_play_idle()
+	_save()
+	_reset_move_timer()
+
+# "hop": jumps up on the spot. The animation (jump) plays while it is in the air; when
+# it comes down, "landing" plays and then it rests (see _on_animation_finished).
+func _start_hop(anim: String = "jump") -> void:
+	_hopping = true
+	_hop_time = 0.0
+	_hop_base_y = global_position.y
+	_busy = true                       # no tickling while it's in the air
+	sprite.play(anim)
+
+# Moves the hopping pet up and back down in an arc.
+func _hop_step(delta: float) -> void:
+	_hop_time += delta
+	var t := _hop_time / HOP_SECONDS       # 0 at take-off, 1 at touchdown
+	if t >= 1.0:
+		_hopping = false
+		global_position.y = _hop_base_y
+		if _has_frames("landing"):
+			sprite.play("landing")         # -> resting when it ends
+		else:
+			_play_idle()
+		return
+	global_position.y = _hop_base_y - sin(t * PI) * HOP_HEIGHT * _frame_size * scale.y
+
+==========================================================================================
+EDIT 6 of 14 - SECTION 5: new animations go back to resting when they end
+==========================================================================================
+Find this line (Ctrl+F: "stays on its last frame until") and REPLACE it with the lines
+below. Keep the tabs at the start of each line exactly as they are.
+
+----- FIND -----
+		# "jump" stays on its last frame until the finger lets go
+
+----- PUT THIS THERE -----
+		"jump":
+			# In the air or in the hand it holds its last frame; otherwise -> resting
+			if not _hopping and not _moving and not _dragging:
+				_play_idle()
+		_:
+			# Any other play-once animation (e.g. "trick") -> back to resting. While
+			# the pet travels or hops with it, it holds the last frame until it arrives.
+			if not _moving and not _hopping:
+				_play_idle()
+
+==========================================================================================
+EDIT 7 of 14 - SECTION 3: a pet that is switched while travelling or hopping starts clean
+==========================================================================================
+Find these two lines inside func set_pet (Ctrl+F: "sprite.sprite_frames = frames") and
+REPLACE them with the lines below.
+
+----- FIND -----
+	sprite.sprite_frames = frames
+	_egg_taps = 0
+
+----- PUT THIS THERE -----
+	sprite.sprite_frames = frames
+	_egg_taps = 0
+	_moving = false      # the new pet doesn't finish the old pet's trip or hop
+	_hopping = false
+	sprite.flip_h = false
+
+==========================================================================================
+EDIT 8 of 14 - SECTION 0: the egg's hatching frames are now called egg_hatch_emerge
+==========================================================================================
+Find this line (Ctrl+F: "# egg_hatch_00..07") and REPLACE it with the line below.
+
+----- FIND -----
+	["egg_hatch", 8, 10.0, false, ["egg_hatch"]],               # egg_hatch_00..07
+
+----- PUT THIS THERE -----
+	["egg_hatch", 8, 10.0, false, ["egg_hatch", "egg_hatch_emerge"]],   # egg_hatch_emerge_..
+
+==========================================================================================
+EDIT 9 of 14 - SECTION 4c (func _on_tap): the third tap starts the hatching that exists
+==========================================================================================
+Find these three lines (Ctrl+F: sprite.play("egg_hatch") ) and REPLACE them with the lines below.
+
+----- FIND -----
+		if _egg_taps >= taps_to_hatch:
+			_busy = true
+			sprite.play("egg_hatch")
+
+----- PUT THIS THERE -----
+		if _egg_taps >= taps_to_hatch:
+			_busy = true
+			if _has_frames("egg_hatch"):
+				sprite.play("egg_hatch")       # the egg hatches (and the pet emerges)
+			elif _has_frames("pet_emerge"):
+				sprite.play("pet_emerge")      # only emerge frames: play those
+			else:
+				hatched = true                 # no hatching frames at all: hatch at once
+				_save()
+				_play_idle()
+
+==========================================================================================
+EDIT 10 of 14 - SECTION 5: after egg_hatch, pet_emerge is played only if it has frames
+==========================================================================================
+Find these two lines (Ctrl+F: "egg cracks -> pet comes out") and REPLACE them with the lines below.
+
+----- FIND -----
+		"egg_hatch":
+			sprite.play("pet_emerge")      # egg cracks -> pet comes out
+
+----- PUT THIS THERE -----
+		"egg_hatch":
+			if _has_frames("pet_emerge"):
+				sprite.play("pet_emerge")  # egg cracks -> pet comes out
+			else:
+				hatched = true             # hatching and emerging are one animation:
+				_save()                    # the pet is out -> remember it
+				_play_idle()
+
+==========================================================================================
+EDIT 11 of 14 - SECTION 0: add the move_left and move_right animations to ANIMS
+==========================================================================================
+Find this line (Ctrl+F: "fly_a_.. / walk_a_..") and REPLACE it with the three lines below.
+
+----- FIND -----
+	["move", 32, 12.0, true, ["move", "fly", "walk", "run", "hop"]],    # fly_a_.. / walk_a_..
+
+----- PUT THIS THERE -----
+	["move", 32, 12.0, true, ["move", "fly", "walk", "run", "hop"]],    # fly_a_.. / walk_a_..
+	["move_left", 8, 12.0, true, ["move_left", "fly_left", "walk_left", "run_left"]],
+	["move_right", 8, 12.0, true, ["move_right", "fly_right", "walk_right", "run_right"]],
+
+==========================================================================================
+EDIT 12 of 14 - SECTION 4c (func _do_random_action): travelling is possible with left/right frames too
+==========================================================================================
+Find this line (Ctrl+F: "_has_frames(a[1])") and REPLACE it with the line below.
+
+----- FIND -----
+		if float(a[2]) > 0.0 and (a[0] == "blink" or _has_frames(a[1])):
+
+----- PUT THIS THERE -----
+		if float(a[2]) > 0.0 and (a[0] == "blink" or _can_do(a[0], a[1])):
+
+==========================================================================================
+EDIT 13 of 14 - SECTION 4c: add two new functions (_can_do and _travel_anim)
+==========================================================================================
+Find this line (Ctrl+F: "sets off towards a random spot"):
+    # "travel": sets off towards a random spot on the left or right.
+Click at the very START of that line, press Enter twice to make room above it, and PASTE
+the block below into the empty space ABOVE it. Do not delete anything.
+Both functions are needed: edit 12 uses _can_do and edit 14 uses _travel_anim.
+
+----- PASTE THIS ABOVE THAT LINE -----
+# Can this pet do an action? "travel" needs frames for its animation or for the
+# _left / _right versions of it; everything else needs frames for its animation.
+func _can_do(kind: String, anim: String) -> bool:
+	if kind == "travel":
+		return not _travel_anim(anim, true).is_empty()
+	return _has_frames(anim)
+
+# [LOGIC] Which animation the pet travels with, and whether it is drawn mirrored.
+#         `base` is the animation named in ACTIONS, normally "move".
+#           going left  -> "move_left" frames, if the pet has them
+#           going right -> "move_right" frames, if the pet has them
+#           only one of the two -> that one, mirrored for the other direction
+#           neither -> "move" itself (fly_ / walk_ / run_ frames), mirrored when it
+#                      goes the other way than the frames face (move_frames_face_right)
+#         Returns [animation, mirrored], or [] if the pet has no frames to travel with.
+func _travel_anim(base: String, going_left: bool) -> Array:
+	var own := base + ("_left" if going_left else "_right")
+	var other := base + ("_right" if going_left else "_left")
+	if _has_frames(own):
+		return [own, false]
+	if _has_frames(other):
+		return [other, true]
+	if _has_frames(base):
+		return [base, going_left == move_frames_face_right]
+	return []
+
+==========================================================================================
+EDIT 14 of 14 - SECTION 4c: replace func _start_moving (left and right frames)
+==========================================================================================
+Select the whole function _start_moving: FROM the line
+    # "travel": sets off towards a random spot on the left or right.
+DOWN TO (but not including) the line
+    # Moves the pet a little each frame until it reaches its spot.
+and REPLACE it with the block below. It is shown in full under FIND so you can compare.
+
+----- FIND -----
+# "travel": sets off towards a random spot on the left or right.
+func _start_moving(anim: String = "move") -> void:
+	var view := get_viewport_rect().size
+	var half := _frame_size * 0.5 * scale.x
+	var target := randf_range(half, view.x - half)
+	if absf(target - global_position.x) < view.x * 0.25:
+		# Too short a trip: go towards the farther side of the screen instead
+		target = half if global_position.x > view.x / 2.0 else view.x - half
+	_move_target_x = target
+	_move_base_y = global_position.y
+	_move_time = 0.0
+	_moving = true
+	_busy = true                       # no tickling while it's on the move
+	# Only pets whose moving frames are named fly_ bob in the air
+	var first := sprite.sprite_frames.get_frame_texture(anim, 0)
+	_move_bobs = first.resource_path.get_file().to_lower().begins_with("fly")
+	var going_left := target < global_position.x
+	sprite.flip_h = (going_left == move_frames_face_right)   # face the way it goes
+	sprite.play(anim)
+
+----- PUT THIS THERE -----
+# "travel": sets off towards a random spot on the left or right.
+func _start_moving(anim: String = "move") -> void:
+	var view := get_viewport_rect().size
+	var half := _frame_size * 0.5 * scale.x
+	var target := randf_range(half, view.x - half)
+	if absf(target - global_position.x) < view.x * 0.25:
+		# Too short a trip: go towards the farther side of the screen instead
+		target = half if global_position.x > view.x / 2.0 else view.x - half
+	var going_left := target < global_position.x
+	var travel := _travel_anim(anim, going_left)     # e.g. ["move_left", false]
+	if travel.is_empty():
+		return                         # this pet has no frames to travel with
+	_move_target_x = target
+	_move_base_y = global_position.y
+	_move_time = 0.0
+	_moving = true
+	_busy = true                       # no tickling while it's on the move
+	# Only pets whose travelling frames are named fly_ bob in the air
+	var first := sprite.sprite_frames.get_frame_texture(travel[0], 0)
+	_move_bobs = first.resource_path.get_file().to_lower().begins_with("fly")
+	sprite.flip_h = travel[1]          # mirrored only when it has no frames for this side
+	sprite.play(travel[0])
