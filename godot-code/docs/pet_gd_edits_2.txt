@@ -1,0 +1,288 @@
+HOW TO UPDATE YOUR OWN pet.gd BY HAND  (tricks one at a time, low energy, sleep)
+==============================================================================
+These edits start from the pet.gd that already has the 14 earlier edits (the version with
+move_left / move_right). Each edit says what to look for (Ctrl+F in Godot's script editor)
+and what to put there. Do them in the order given. Copy the code from THIS text file, not
+from the PDF: the lines start with tab characters, which GDScript needs.
+
+EASIER: the file pet.gd that comes with this update already has all of these edits. If you
+use it, put your own pets and folders back into its PETS list at the top, and redo any other
+changes you made in your own file.
+
+Afterwards press Ctrl+S and F5. The Output panel should show a line like
+    Project P: frames per animation: ... trick 16, low_energy 8, sleep 8, (trick: 2 versions)
+To test without waiting: select the Pet node and set "Test Hour" to 23 (it sleeps; tap it to
+wake it) or "Test Battery Percent" to 10 (low-energy movements) in the Inspector.
+
+==========================================================================================
+EDIT 1 of 11 - SECTION 0: add the low_energy and sleep animations to ANIMS
+==========================================================================================
+Find this line (Ctrl+F: "trick_a_.. trick_b_..") and REPLACE it with the three lines below.
+If your files have other names than low_energy_.. and sleep_.., add the name (without the
+number) to the list at the end of its line.
+
+----- FIND -----
+	["trick", 16, 10.0, false, ["trick", "extra", "special", "dance"]],     # trick_a_.. trick_b_..
+
+----- PUT THIS THERE -----
+	["trick", 16, 10.0, false, ["trick", "extra", "special", "dance"]],     # trick_a_.. trick_b_..
+	["low_energy", 8, 8.0, false, ["low_energy", "low_battery", "tired"]],    # low_energy_..
+	["sleep", 8, 6.0, true, ["sleep", "sleeping", "asleep"]],                 # sleep_00..
+
+==========================================================================================
+EDIT 2 of 11 - SECTION 0: add the settings for tricks, low energy and sleep
+==========================================================================================
+Find this line (Ctrl+F: "# Frame file names - any") and PASTE the block below ABOVE it.
+
+----- PASTE THIS ABOVE THAT LINE -----
+# [EDIT] MOVEMENTS WITH SEVERAL VERSIONS. An animation listed here is not one long
+#        movement but several separate ones in a row, each this many frames long: with
+#        "trick": 8, trick_a_00..07 is one trick and trick_b_00..07 another. When the
+#        pet plays it, it picks ONE version at random, plays just that one, and goes
+#        back to resting. Add more rows of frames (trick_c_.., trick_d_..) and they
+#        join the choice by themselves.
+#        Remove a line to play that animation from its first to its last frame again.
+const ANIM_SETS := {
+	"trick": 8,
+	"low_energy": 8,
+}
+
+# [EDIT] LOW ENERGY. When the phone's battery is at or below LOW_BATTERY_PERCENT and
+#        the phone is not charging, the pet picks from this list instead of ACTIONS:
+#        it does its low-energy movements instead of travelling, hopping and tricks.
+#        Same kind of lines as ACTIONS. A pet without low_energy frames keeps ACTIONS.
+const LOW_BATTERY_PERCENT := 15
+const LOW_ENERGY_ACTIONS := [
+	["blink", "", 3],              # keep blinking a while longer
+	["play", "low_energy", 4],     # one of its low-energy movements
+]
+
+# [EDIT] SLEEP. Between these hours of the phone's clock (24-hour clock: 23 = 11 PM,
+#        6 = 6 AM) the hatched pet sleeps: it plays "sleep" instead of pet_idle and
+#        does nothing by itself. Tapping it wakes it up for AWAKE_MINUTES; every
+#        further tap keeps it awake that long again. Then it goes back to sleep.
+#        A pet without sleep frames never sleeps.
+const SLEEP_FROM_HOUR := 23
+const SLEEP_UNTIL_HOUR := 6
+const AWAKE_MINUTES := 5.0
+
+==========================================================================================
+EDIT 3 of 11 - SECTION 1: two settings for testing low energy and sleep on the computer
+==========================================================================================
+Find this line (Ctrl+F: "taps_to_hatch: int") and REPLACE it with the lines below.
+
+----- FIND -----
+@export var taps_to_hatch: int = 3
+
+----- PUT THIS THERE -----
+@export var taps_to_hatch: int = 3
+# [EDIT] FOR TESTING: pretend the battery is at this percent (e.g. 10 to see the low-
+#        energy movements) and pretend it is this hour (e.g. 23 to see the pet sleep).
+#        -1 = use the real battery and the real clock. Set them in the Inspector and
+#        put them back to -1 before you export.
+@export var test_battery_percent: int = -1
+@export var test_hour: int = -1
+
+==========================================================================================
+EDIT 4 of 11 - SECTION 2: two new lines of pet state
+==========================================================================================
+Find this line (Ctrl+F: "var _hop_base_y") and REPLACE it with the three lines below.
+
+----- FIND -----
+var _hop_base_y := 0.0          # its height before the hop
+
+----- PUT THIS THERE -----
+var _hop_base_y := 0.0          # its height before the hop
+var _awake_until := 0.0         # woken up at night: stays awake until this time
+var _no_battery_info := false   # the phone side can't tell the battery level (old add-on)
+
+==========================================================================================
+EDIT 5 of 11 - SECTION 4c (func _process): falling asleep and waking up
+==========================================================================================
+Find these nine lines at the END of func _process (Ctrl+F: "let the current blink finish first")
+and REPLACE them with the lines below. The lines above them in _process stay as they are.
+
+----- FIND -----
+	if not hatched or _busy or _dragging or _pinching or sprite.sprite_frames == null:
+		return
+	if String(sprite.animation) != "pet_idle":
+		return
+	_next_move -= delta
+	if _next_move > 0.0:
+		return
+	if sprite.frame % BLINK_FRAMES != 0:
+		return                         # let the current blink finish first
+	_do_random_action()
+
+----- PUT THIS THERE -----
+	if not hatched or _busy or _dragging or _pinching or sprite.sprite_frames == null:
+		return
+	# Falling asleep or waking up: the resting animation it should have now is another
+	# one than it is playing (the clock passed SLEEP_FROM_HOUR, or its time awake is over)
+	var playing := String(sprite.animation)
+	var rest := _rest_anim()
+	if (playing == "pet_idle" or playing == "sleep") and playing != rest:
+		if playing == "sleep" or sprite.frame % BLINK_FRAMES == 0:
+			_play_idle()               # (an awake pet finishes its blink first)
+		return
+	if playing != "pet_idle":
+		return                         # asleep: it does nothing by itself
+	_next_move -= delta
+	if _next_move > 0.0:
+		return
+	if sprite.frame % BLINK_FRAMES != 0:
+		return                         # let the current blink finish first
+	_do_random_action()
+
+==========================================================================================
+EDIT 6 of 11 - SECTION 4c (func _do_random_action): pick from the low-energy list when needed
+==========================================================================================
+Find this line (Ctrl+F: "for a in ACTIONS:") and REPLACE it with the line below.
+
+----- FIND -----
+	for a in ACTIONS:
+
+----- PUT THIS THERE -----
+	for a in _actions_now():           # ACTIONS, or LOW_ENERGY_ACTIONS on a low battery
+
+==========================================================================================
+EDIT 7 of 11 - SECTION 4c (func _do_action): play ONE version of a movement
+==========================================================================================
+Find this line (Ctrl+F: "ends in _on_animation_finished") and REPLACE it with the line below.
+
+----- FIND -----
+			sprite.play(anim)              # ends in _on_animation_finished -> resting
+
+----- PUT THIS THERE -----
+			sprite.play(_one_version(anim))    # e.g. "trick#2"; when it ends -> resting
+
+==========================================================================================
+EDIT 8 of 11 - SECTION 4c: add the new functions (versions, low energy, sleep)
+==========================================================================================
+Find this line (Ctrl+F: "# Does this pet have frames for an animation?"). Click at the very
+START of that line, press Enter twice to make room above it, and PASTE the block below
+into the empty space ABOVE it. Do not delete anything.
+
+----- PASTE THIS ABOVE THAT LINE -----
+# [LOGIC] An animation listed in ANIM_SETS has several versions, built when the pet is
+#         loaded: "trick#1", "trick#2", ... This picks one of them at random. For any
+#         other animation it returns the animation itself.
+func _one_version(anim: String) -> String:
+	var count := 0
+	while sprite.sprite_frames.has_animation("%s#%d" % [anim, count + 1]):
+		count += 1
+	if count == 0:
+		return anim
+	return "%s#%d" % [anim, randi_range(1, count)]
+
+# [LOGIC] The list the pet picks its next action from: LOW_ENERGY_ACTIONS while the
+#         battery is low and the pet has frames for something in it, otherwise ACTIONS.
+func _actions_now() -> Array:
+	if _is_low_energy():
+		for a in LOW_ENERGY_ACTIONS:
+			if a[0] != "blink" and float(a[2]) > 0.0 and _can_do(a[0], a[1]):
+				return LOW_ENERGY_ACTIONS
+	return ACTIONS
+
+# Is the phone's battery low (and not charging)? Always false on the computer, unless
+# test_battery_percent is set in the Inspector.
+# On the phone the battery is read through the wallpaper add-on (WallpaperBridge.kt).
+func _is_low_energy() -> bool:
+	if test_battery_percent >= 0:
+		return test_battery_percent <= LOW_BATTERY_PERCENT
+	if _no_battery_info or not Engine.has_singleton("ProjectPWallpaper"):
+		return false
+	var phone = Engine.get_singleton("ProjectPWallpaper")
+	var percent = phone.call("batteryPercent")
+	if not (percent is int):
+		_no_battery_info = true        # an older add-on without battery info: stop asking
+		return false
+	if percent < 0 or phone.call("isCharging") == true:
+		return false
+	return percent <= LOW_BATTERY_PERCENT
+
+# [LOGIC] Is it the pet's bedtime right now? True between SLEEP_FROM_HOUR and
+#         SLEEP_UNTIL_HOUR by the phone's clock, unless a tap woke it up a moment ago.
+func _is_sleep_time() -> bool:
+	if Time.get_unix_time_from_system() < _awake_until:
+		return false                   # woken up: awake for a while
+	var hour: int = test_hour if test_hour >= 0 else Time.get_time_dict_from_system()["hour"]
+	if SLEEP_FROM_HOUR <= SLEEP_UNTIL_HOUR:
+		return hour >= SLEEP_FROM_HOUR and hour < SLEEP_UNTIL_HOUR
+	return hour >= SLEEP_FROM_HOUR or hour < SLEEP_UNTIL_HOUR     # (through midnight)
+
+# The animation the pet rests with right now: the egg's idle before hatching, "sleep"
+# at night (if it has sleep frames), otherwise pet_idle (blinking).
+func _rest_anim() -> String:
+	if not hatched:
+		return "egg_idle"
+	if _is_sleep_time() and _has_frames("sleep"):
+		return "sleep"
+	return "pet_idle"
+
+==========================================================================================
+EDIT 9 of 11 - func _on_tap: a tap wakes a sleeping pet
+==========================================================================================
+Find these three lines at the END of func _on_tap (Ctrl+F: sprite.play("ticklish") ) and
+REPLACE them with the lines below.
+
+----- FIND -----
+	else:
+		_busy = true
+		sprite.play("ticklish")
+
+----- PUT THIS THERE -----
+	else:
+		# Any tap keeps the pet awake for AWAKE_MINUTES (this only matters at night)
+		var was_asleep := String(sprite.animation) == "sleep"
+		_awake_until = Time.get_unix_time_from_system() + AWAKE_MINUTES * 60.0
+		if was_asleep:
+			_play_idle()               # it wakes up: back to blinking
+			_reset_move_timer()
+			return
+		_busy = true
+		sprite.play("ticklish")
+
+==========================================================================================
+EDIT 10 of 11 - SECTION 5: replace func _play_idle (resting can now be sleeping)
+==========================================================================================
+Find these lines (Ctrl+F: "func _play_idle") and REPLACE them with the lines below.
+
+----- FIND -----
+# Go back to resting: pet_idle after hatching, egg_idle before.
+func _play_idle() -> void:
+	_busy = false
+	sprite.play("pet_idle" if hatched else "egg_idle")
+
+----- PUT THIS THERE -----
+# Go back to resting: egg_idle before hatching; after it pet_idle (blinking), or
+# "sleep" at night (see _rest_anim in SECTION 4c).
+func _play_idle() -> void:
+	_busy = false
+	sprite.play(_rest_anim())
+
+==========================================================================================
+EDIT 11 of 11 - SECTION 8 (func _build_frames): build the versions of ANIM_SETS movements
+==========================================================================================
+Find this line (Ctrl+F: "frames per animation: " + ", ".join) and PASTE the block below ABOVE
+it. The block starts with ONE tab, like the line it goes above.
+
+----- PASTE THIS ABOVE THAT LINE -----
+	# Movements with several versions (ANIM_SETS, SECTION 0): besides the whole animation,
+	# one extra animation per version is made, named "trick#1", "trick#2", ...
+	for set_name in ANIM_SETS:
+		var per_version: int = ANIM_SETS[set_name]
+		var set_paths: Array = groups.get(set_name, [])
+		if per_version <= 0 or not frames.has_animation(set_name):
+			continue
+		@warning_ignore("integer_division")
+		var versions: int = set_paths.size() / per_version
+		for v in versions:
+			var version_name := "%s#%d" % [set_name, v + 1]
+			frames.add_animation(version_name)
+			frames.set_animation_speed(version_name, frames.get_animation_speed(set_name))
+			frames.set_animation_loop(version_name, frames.get_animation_loop(set_name))
+			for path in set_paths.slice(v * per_version, (v + 1) * per_version):
+				frames.add_frame(version_name, load(path))
+		if versions > 0:
+			summary.append("(%s: %d versions)" % [set_name, versions])

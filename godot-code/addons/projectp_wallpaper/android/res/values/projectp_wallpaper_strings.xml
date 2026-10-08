@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- [EDIT] Text shown under the wallpaper's name in Android's wallpaper list. -->
+    <string name="wallpaper_description">Your Project P pet lives here.</string>
+</resources>
