@@ -14,7 +14,9 @@ godot-code/
 ├── pet_picker.gd            # "Choose your pet" grid, 3 per row
 ├── main_menu.gd             # menu: Pet Selection, Wallpaper Selection, Dojo
 ├── pet_stats.gd             # trained stats + Training Points from real-life activity
+├── evolution.gd             # stage + branch -> evolution form (Adult / Final), saved per pet
 ├── data/                    # ALL numbers: pets, skills, elements, balance, activities
+│   ├── evolution.json       # evolution levels, branch rule and all 132 forms
 │   ├── game_data.gd         # autoload "GameData" that loads the JSON files
 │   └── README.md            # what every field and formula means
 ├── battle/
@@ -24,7 +26,8 @@ godot-code/
 │   ├── battle_fighter.gd    # one pet in battle: its battle frames, or a drawn stand-in
 │   └── balance_runner.gd    # fights every pet against every pet, writes a CSV
 ├── tests/test_battle.gd     # quick checks for data and battle rules
-├── pets/<id>/               # pet frames (add yours) - battle frames in pets/<id>/battle/
+├── pets/<id>/               # pet frames (add yours) - battle frames in pets/<id>/battle/,
+│                            #   evolution forms in pets/<id>/forms/<form id>/
 ├── menu/                    # menu art: background/, buttons/, splash/ (optional)
 ├── addons/projectp_wallpaper/   # packs the Android live wallpaper into the APK
 ├── android-wallpaper-only/  # only for Part B of the guide (ignored by Godot)
@@ -39,6 +42,7 @@ Nothing here needs code changes - drop files in and the scripts find them:
 | --- | --- | --- |
 | Pet frames (care screen + wallpaper) | `pets/<id>/` | as before: `egg_idle_00.png`, `idle_a_00.png` ... (see SECTION 0 of `pet.gd`) |
 | Battle frames | `pets/<id>/battle/` | `battle_idle_00..07`, `attack_physical_00..07`, `cast_special_00..07`, `ultimate_00..07`, `dash_00..03`, `dodge_00..03`, `hurt_00..03`, `block_00..03`, `knockout_00..07`, `victory_00..07` - 128 × 128, facing right, feet on y = 120 |
+| Evolution form frames | `pets/<id>/forms/<form id>/` and `pets/<id>/forms/<form id>/battle/` | same names as the pet's own frames; form ids are in `data/evolution.json` (e.g. `pets/gym_wolf/forms/ironfang/`). A form without frames uses the pet's own. |
 | Splash art | `menu/splash/<id>.png` | 420 × 480 |
 | Menu buttons | `menu/buttons/` | `pet_selection_00..02`, `wallpaper_selection_00..02`, `dojo_00..02`, `menu_00..02` |
 
@@ -51,7 +55,7 @@ Run from a terminal in this folder (`godot` = your Godot 4.6 executable):
 
 ```bash
 godot --headless --import --path .                                  # first time only
-godot --headless --path . -s res://tests/test_battle.gd             # 8 checks, exit code 0 = all pass
+godot --headless --path . -s res://tests/test_battle.gd             # 14 checks, exit code 0 = all pass
 godot --headless --path . -s res://battle/balance_runner.gd         # win rates of all 12 pets
 godot --headless --path . -s res://battle/balance_runner.gd -- --fights 500 --total 300
 ```

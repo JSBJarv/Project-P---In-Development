@@ -69,7 +69,8 @@ extends Node2D
 #           folder named like the id (e.g. any folder called "nocti") and says so.
 #           The 12 Project P pets (see the "Pet roster" tab of the concept doc). Nocti,
 #           the owl, is the starter egg. Battle stats, element and skills for each id
-#           are in res://data/pets.json; battle frames go in <folder>/battle/.
+#           are in res://data/pets.json; battle frames go in <folder>/battle/ and the
+#           evolution forms' frames in <folder>/forms/<form id>/ (see evolution.gd).
 const PETS := {
 	"nocti": "res://pets/nocti",
 	"gym_wolf": "res://pets/gym_wolf",
@@ -296,7 +297,10 @@ func set_pet(id: String) -> void:
 		push_warning("Unknown pet id '%s', using the first pet instead" % id)
 		id = PETS.keys()[0]
 	pet_id = id
-	var frames := _build_frames(PETS[id])
+	# [LOGIC] An evolved pet uses its form's frames (pets/<id>/forms/<form id>/) when
+	#         they exist, otherwise the pet's own frames (evolution.gd).
+	var folder: String = PETS[id] if Engine.is_editor_hint() else Evolution.art_folder(id, PETS[id])
+	var frames := _build_frames(folder)
 	if frames == null:
 		return           # folder not found: the error message is in the Output panel
 	sprite.sprite_frames = frames
@@ -307,7 +311,7 @@ func set_pet(id: String) -> void:
 	_load()          # restore this pet's position and hatched state
 	_play_idle()     # start resting: egg_idle or pet_idle
 	_reset_move_timer()
-	print("Project P: showing pet '%s' from %s (%dpx frames)" % [id, PETS[id], _frame_size])
+	print("Project P: showing pet '%s' from %s (%dpx frames)" % [id, folder, _frame_size])
 
 # ===== SECTION 4: TOUCH (TAP AND DRAG) ===============================================
 # [LOGIC] Finger down on the pet -> up without moving = tap (_on_tap).
@@ -891,7 +895,9 @@ func _png_files(folder: String) -> Array:
 			if not result.has(path):
 				result.append(path)
 	for d in dir.get_directories():
-		if not d.begins_with("."):
+		# "forms" holds the evolution forms' own frames and "battle" the battle frames:
+		# neither belongs to the care-screen animations of this folder.
+		if not d.begins_with(".") and d != "forms" and d != "battle":
 			result.append_array(_png_files(folder.path_join(d)))
 	return result
 

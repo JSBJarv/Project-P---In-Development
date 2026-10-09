@@ -30,7 +30,7 @@ Every number the battle and training use lives in these JSON files. Change a val
 
 ## pets.json
 
-`name`, `animal`, `title`, `element` (suggested innate element), `favoured` (stat), `habit`, `unlock`, `skills` (default loadout, **in priority order** - put situational skills first and the cheap no-cooldown skill last, or the pet will only ever use the cheap one), `ultimate`, `passive`, `forms` (Adult forms: Martial / Arcane / Swift).
+`name`, `animal`, `title`, `element` (suggested innate element), `favoured` (stat), `habit`, `unlock`, `skills` (default loadout, **in priority order** - put situational skills first and the cheap no-cooldown skill last, or the pet will only ever use the cheap one), `ultimate`, `passive`. Evolution forms are in `evolution.json`.
 
 Passive kinds: `free_every` (n), `low_hp_stat` (threshold, stat, pct), `dodge_speed` (amount), `regen` (pct, every), `first_strike_stacks` (pct, max), `start_shield` (pct, refresh_below), `first_hit_blocked` (count), `arcane_stacks` (pct, max), `first_turn`, `first_debuff_immune` (spirit_on_debuff), `reflect_physical` (pct). Each is explained in SECTION 7 of `battle/battle_sim.gd`.
 
@@ -49,6 +49,19 @@ Passive kinds: `free_every` (n), `low_hp_stat` (threshold, stat, pct), `dodge_sp
 | `mastery` | `[{"stat": "str", "at": 150, "mods": {...}}]` - when the pet's stat reaches `at`, the fields in `mods` replace the skill's own |
 
 How a pet decides: it goes down its skill list and uses the first skill that is off cooldown, affordable and useful right now (heals only below 60% HP; shields, buffs, counters, evades only when not already active; status-only skills only if the enemy doesn't have that status yet). Otherwise it uses a free basic attack.
+
+## evolution.json - when and into what a pet evolves
+
+| Key | Meaning |
+| --- | --- |
+| `stages` | Level at which child, adult and final start (before child = baby). |
+| `final_needs_trial` | Final also needs the Trial battle won (`Evolution.win_trial`). |
+| `branch_rule` | Uses the shares of STR, INT and AGI (percent of the three). `harmony_within`: all three this close → Harmony. `hybrid_within`: at Final, top two closer than this → hybrid (Martial-Arcane, Martial-Swift, Arcane-Swift). Otherwise the top stat's branch (Martial = STR, Arcane = INT, Swift = AGI). |
+| `stage_bonus` | Flat points added to every stat in battle at each stage. |
+| `preview_levels_before` | How many levels before Adult / Final `Evolution.preview` starts showing the form the pet is heading for. |
+| `forms` | Per pet: 4 Adult forms and 7 Final forms, each `{id, name, animal}`. The `id` is also the art folder: `pets/<pet id>/forms/<form id>/` (care frames) and `.../battle/` (battle frames). |
+
+The branch is decided when the pet evolves and then kept; training afterwards never changes a form the player has. Names and animals match the Pet Evolution Guide PDF.
 
 ## elements.json, status_effects.json, activities.json
 

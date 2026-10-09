@@ -30,7 +30,7 @@ extends Node
 # ===== SECTION 1: SETTINGS ===========================================================
 # [EDIT] Where the data files are.
 const DATA_FOLDER := "res://data"
-const FILES := ["balance", "pets", "skills", "elements", "status_effects", "activities"]
+const FILES := ["balance", "pets", "skills", "elements", "status_effects", "activities", "evolution"]
 
 # Filled in by load_all(): file name -> its contents (keys starting with "_" removed).
 var balance: Dictionary = {}
@@ -39,6 +39,7 @@ var skills: Dictionary = {}
 var elements: Dictionary = {}
 var status_effects: Dictionary = {}
 var activities: Dictionary = {}
+var evolution: Dictionary = {}
 
 # [LOGIC] The battle screen reads this to know who fights. The main menu's Dojo button
 #         fills it in: {"player": "<pet id>", "opponent": "<pet id or empty>"}.
@@ -128,4 +129,14 @@ func check() -> Array:
 		for e in s.get("effects", []):
 			if e.get("op", "") == "status" and not status_effects.has(e.get("status", "")):
 				problems.append("skill %s: unknown status '%s'" % [sid, e.get("status", "")])
+	# Evolution: every pet has 4 Adult and 7 Final forms, each with an id and a name
+	var forms: Dictionary = evolution.get("forms", {})
+	for id in pets:
+		var f: Dictionary = forms.get(id, {})
+		for branch in ["Martial", "Arcane", "Swift", "Harmony"]:
+			if not f.get("adult", {}).get(branch, {}).has("id"):
+				problems.append("%s: no Adult %s form in evolution.json" % [id, branch])
+		for branch in ["Martial", "Arcane", "Swift", "Martial-Arcane", "Martial-Swift", "Arcane-Swift", "Harmony"]:
+			if not f.get("final", {}).get(branch, {}).has("id"):
+				problems.append("%s: no Final %s form in evolution.json" % [id, branch])
 	return problems
