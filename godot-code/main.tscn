@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://pet.gd" id="1_pet"]
+[ext_resource type="Script" path="res://pet_picker.gd" id="2_picker"]
+[ext_resource type="Script" path="res://main_menu.gd" id="3_menu"]
+
+[node name="Main" type="Node2D"]
+
+[node name="Pet" type="Node2D" parent="."]
+position = Vector2(360, 800)
+scale = Vector2(2, 2)
+script = ExtResource("1_pet")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Pet"]
+
+[node name="PetPicker" type="CanvasLayer" parent="."]
+script = ExtResource("2_picker")
+
+[node name="MainMenu" type="CanvasLayer" parent="."]
+script = ExtResource("3_menu")

@@ -1,28 +1,37 @@
 # Game Design
 
+Full concept: the "Project P - Pet Battle System Concept" doc (battle, stats, evolution, skills, elements, the 12-pet roster).
+
 ## Pet
 
-- Original creature, 64x64 pixel art
-- Growth stages
-- Care stats and care actions
+- 12 original pets, each tied to one real-life habit and unlocked by doing it (Nocti the owl is the starter egg)
+- Pixel art, 128 × 128 frames, feet on y = 120 (the Project P standard cell)
+- Growth stages: Egg → Baby → Child (Lv 10) → Adult (Lv 25, branch by STR / INT / AGI share) → Final (Lv 45)
+- Care stats and care actions; lives on the home and lock screen as a live wallpaper
 
-## Battle stats
+## Stats (raised only by real-life activity)
 
-Strength, Intelligence, Speed, Block, Dodge, Critical, Mana.
+- Trained: Strength, Intelligence, Agility, Vitality (HP), Spirit (Mana)
+- Derived: Max HP, Max Mana, Mana regen, Speed, Block, Dodge, Critical, Guard, Ward
+- Activity → Training Points (flat) → stat points (rising cost, daily soft and hard cap)
+- Numbers: `godot-code/data/balance.json`, `activities.json`
 
-- Stats are raised by real-life activities.
-- Stat scaling comes from real-life activity, not from overpowered skills.
+## Battle (Dojo)
+
+- Pockie Ninja-style auto-battle, landscape, decided by a headless simulator from two pet snapshots + a seed
+- 4 skills in priority order + ultimate (Spirit 100) + passive; six elements; status effects
+- Async multiplayer later: the opponent fights as their last saved snapshot
+- Numbers: `godot-code/data/skills.json`, `pets.json`, `elements.json`, `status_effects.json`
 
 ## Abilities
 
-- Passives
-- Later: cards that augment skill effects
+- Passives (one per pet, see `pets.json`)
+- Later: cards / gems that augment skill effects, gear, Dojo Tower
 
 ## Economy
 
-- Shop
-- Inventory
+- Shop, inventory; stats and skills are never sold (cosmetics, artist-made pets)
 
 ## Platforms
 
-Android, iOS, desktop.
+Android first, then iOS and desktop. One APK with the game and the wallpaper.

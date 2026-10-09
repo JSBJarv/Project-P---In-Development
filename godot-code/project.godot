@@ -1,0 +1,43 @@
+; Engine configuration file.
+; Godot 4.6. Open this folder (godot-code) in the Godot editor.
+;
+; Project P: the pet app is portrait (720 x 1280). The Dojo battle switches the phone
+; to landscape (1280 x 720) while it is open - see battle/battle_screen.gd.
+
+config_version=5
+
+[application]
+
+config/name="Project P"
+config/description="A cozy pixel-art pet that grows with your real-life habits."
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.6", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[autoload]
+
+GameData="*res://data/game_data.gd"
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/size/window_width_override=450
+window/size/window_height_override=800
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/projectp_wallpaper/plugin.cfg")
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0

@@ -119,9 +119,18 @@ object PetCatalog {
     //           One line per pet: PetType(id, name shown to the user, assets folder).
     //           The FIRST pet is the default.
     val PETS = listOf(
-        PetType("dragon", "Dragon", "pets/dragon"),
-        // PetType("cat", "Cat", "pets/cat"),
-        // PetType("fox", "Fox", "pets/fox"),
+        PetType("nocti", "Nocti", "pets/nocti"),
+        PetType("gym_wolf", "Gym Wolf", "pets/gym_wolf"),
+        PetType("moonstep", "Moonstep", "pets/moonstep"),
+        PetType("kindle", "Kindle", "pets/kindle"),
+        PetType("cinderpip", "Cinderpip", "pets/cinderpip"),
+        PetType("ripple", "Ripple", "pets/ripple"),
+        PetType("dozie", "Dozie", "pets/dozie"),
+        PetType("mossback", "Mossback", "pets/mossback"),
+        PetType("digby", "Digby", "pets/digby"),
+        PetType("sunhop", "Sunhop", "pets/sunhop"),
+        PetType("basko", "Basko", "pets/basko"),
+        PetType("quill", "Quill", "pets/quill"),
     )
 
     // [EDIT] The animations: Anim(frames, fps, loop, file names it accepts).

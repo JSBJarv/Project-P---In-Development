@@ -1,0 +1,11 @@
+{
+  "_about": "Status effects. kind tells the simulator what it does; resisted_by = the target stat that lowers the chance it lands (see balance.status_chance_per_point).",
+  "burn":    {"name": "Burn",    "kind": "damage_over_time", "resisted_by": "vit", "max_stacks": 1, "color": "#ff7a3d"},
+  "cut":     {"name": "Cut",     "kind": "block_down",       "resisted_by": "vit", "max_stacks": 3, "per_stack": 0.05, "color": "#5fd6c0"},
+  "mark":    {"name": "Mark",    "kind": "mark",             "resisted_by": "",    "max_stacks": 1, "color": "#a98ae6"},
+  "silence": {"name": "Silence", "kind": "silence",          "resisted_by": "vit", "max_stacks": 1, "color": "#9aa0b4"},
+  "stun":    {"name": "Stun",    "kind": "skip_turn",        "resisted_by": "vit", "max_stacks": 1, "no_repeat": true, "color": "#f2c440"},
+  "sleep":   {"name": "Sleep",   "kind": "skip_turn",        "resisted_by": "vit", "max_stacks": 1, "no_repeat": true, "breaks_on_damage": true, "color": "#b9dcff"},
+  "shield":  {"name": "Shield",  "kind": "shield",           "resisted_by": "",    "max_stacks": 1, "color": "#c9f5ec"},
+  "buff":    {"name": "Buff",    "kind": "stat_change",      "resisted_by": "",    "max_stacks": 4, "color": "#8be08b"}
+}

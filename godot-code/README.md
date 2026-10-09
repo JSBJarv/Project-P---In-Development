@@ -1,41 +1,71 @@
 # Godot Code
 
-The Godot project for Project P. Open this folder (the one containing `project.godot`) in the Godot editor.
+The Godot project for Project P. Open this folder (the one containing `project.godot`) in **Godot 4.6** (Compatibility renderer).
 
-Targets: Android, iOS, desktop.
+Targets: Android, iOS, desktop. The pet app is portrait (720 × 1280); the Dojo battle turns the phone to landscape (1280 × 720) while it is open.
 
-## Suggested structure
+## Structure
 
 ```
 godot-code/
-├── project.godot
-├── scenes/      # .tscn files
-├── scripts/     # GDScript
-├── assets/      # sprites imported from art-and-sprites/sprites
-└── addons/
+├── project.godot            # project settings, autoload GameData, wallpaper add-on on
+├── main.tscn                # Main: Pet + PetPicker + MainMenu (the app starts here)
+├── pet.gd                   # the pet on screen (12 pet ids in PETS)
+├── pet_picker.gd            # "Choose your pet" grid, 3 per row
+├── main_menu.gd             # menu: Pet Selection, Wallpaper Selection, Dojo
+├── pet_stats.gd             # trained stats + Training Points from real-life activity
+├── data/                    # ALL numbers: pets, skills, elements, balance, activities
+│   ├── game_data.gd         # autoload "GameData" that loads the JSON files
+│   └── README.md            # what every field and formula means
+├── battle/
+│   ├── battle_sim.gd        # the fight rules: snapshots + seed -> event log (no graphics)
+│   ├── battle.tscn          # the Dojo scene (landscape)
+│   ├── battle_screen.gd     # plays the event log: bars, banner, hits, numbers, end card
+│   ├── battle_fighter.gd    # one pet in battle: its battle frames, or a drawn stand-in
+│   └── balance_runner.gd    # fights every pet against every pet, writes a CSV
+├── tests/test_battle.gd     # quick checks for data and battle rules
+├── pets/<id>/               # pet frames (add yours) - battle frames in pets/<id>/battle/
+├── menu/                    # menu art: background/, buttons/, splash/ (optional)
+├── addons/projectp_wallpaper/   # packs the Android live wallpaper into the APK
+├── android-wallpaper-only/  # only for Part B of the guide (ignored by Godot)
+└── docs/                    # Android pet guide and pet.gd edit notes
 ```
 
-## Systems to build
+## Adding the pet art
 
-- Pet: growth stages, care stats and actions
-- Battle stats: Strength, Intelligence, Speed, Block, Dodge, Critical, Mana (raised by real-life activities)
-- Passives, and later cards that augment skill effects
-- Shop and inventory
+Nothing here needs code changes - drop files in and the scripts find them:
 
-## Pet + home-screen wallpaper (current working files)
+| What | Where | Names |
+| --- | --- | --- |
+| Pet frames (care screen + wallpaper) | `pets/<id>/` | as before: `egg_idle_00.png`, `idle_a_00.png` ... (see SECTION 0 of `pet.gd`) |
+| Battle frames | `pets/<id>/battle/` | `battle_idle_00..07`, `attack_physical_00..07`, `cast_special_00..07`, `ultimate_00..07`, `dash_00..03`, `dodge_00..03`, `hurt_00..03`, `block_00..03`, `knockout_00..07`, `victory_00..07` - 128 × 128, facing right, feet on y = 120 |
+| Splash art | `menu/splash/<id>.png` | 420 × 480 |
+| Menu buttons | `menu/buttons/` | `pet_selection_00..02`, `wallpaper_selection_00..02`, `dojo_00..02`, `menu_00..02` |
 
-These files go next to `project.godot` in your Godot project. The paths matter: the add-on
-looks for `res://pet.gd`, and the main menu looks for `res://pet_picker.gd`.
+Pet ids: `nocti`, `gym_wolf`, `moonstep`, `kindle`, `cinderpip`, `ripple`, `dozie`, `mossback`, `digby`, `sunhop`, `basko`, `quill`.
+Until a pet has frames, the care screen shows nothing for it and the Dojo draws a round stand-in in its element colour.
+
+## Checking and balancing
+
+Run from a terminal in this folder (`godot` = your Godot 4.6 executable):
+
+```bash
+godot --headless --import --path .                                  # first time only
+godot --headless --path . -s res://tests/test_battle.gd             # 8 checks, exit code 0 = all pass
+godot --headless --path . -s res://battle/balance_runner.gd         # win rates of all 12 pets
+godot --headless --path . -s res://battle/balance_runner.gd -- --fights 500 --total 300
+```
+
+Current balance (200 stat points each, level 10, 120 fights per pairing): every pet wins 40-61% of fights, median fight 9 rounds. Change numbers in `data/*.json`, then run both commands again.
+
+## Pet + home-screen wallpaper
 
 | File / folder | What it is |
 | --- | --- |
 | `pet.gd` | The pet: frames, hatching, tickle, drag/resize, actions, one trick at a time, low energy, sleep |
 | `pet_picker.gd` | Pet selection grid with splash art (`res://menu/splash/<id>.png`) |
-| `main_menu.gd` | Main menu: animated background, Pet Selection and Wallpaper Selection buttons |
+| `main_menu.gd` | Main menu: animated background, Pet Selection, Wallpaper Selection and Dojo buttons |
 | `addons/projectp_wallpaper/` | Godot add-on (v1.8) that packs the Android live wallpaper into the game's APK |
 | `docs/Project_P_Android_Pet_Guide.pdf` | Step-by-step guide (Part A game, Part B optional wallpaper app, Part C one app) |
-| `docs/pet_gd_edits*.txt` | Find-and-replace edits for updating a hand-edited `pet.gd` |
-| `android-wallpaper-only/` | Only for Part B of the guide (wallpaper as its own Android Studio app) |
 
-Not run on a real phone yet: the Kotlin compiles, and `pet.gd` and the add-on export
-were tested in Godot 4.3 and 4.5.
+Not run on a real phone yet. The project, tests, balance runner and a full Dojo battle were run in Godot 4.6 on Linux; the wallpaper add-on export was tested earlier in Godot 4.3 and 4.5.

@@ -66,11 +66,23 @@ extends Node2D
 #           The id is used in saved data, so don't change it after release.
 #           Keep this list in sync with PETS in PetCatalog.kt (Android).
 #           If the folder isn't found, the script also searches the project for a
-#           folder named like the id (e.g. any folder called "dragon") and says so.
+#           folder named like the id (e.g. any folder called "nocti") and says so.
+#           The 12 Project P pets (see the "Pet roster" tab of the concept doc). Nocti,
+#           the owl, is the starter egg. Battle stats, element and skills for each id
+#           are in res://data/pets.json; battle frames go in <folder>/battle/.
 const PETS := {
-	"dragon": "res://pets/dragon",
-	# "cat": "res://pets/cat",
-	# "fox": "res://pets/fox",
+	"nocti": "res://pets/nocti",
+	"gym_wolf": "res://pets/gym_wolf",
+	"moonstep": "res://pets/moonstep",
+	"kindle": "res://pets/kindle",
+	"cinderpip": "res://pets/cinderpip",
+	"ripple": "res://pets/ripple",
+	"dozie": "res://pets/dozie",
+	"mossback": "res://pets/mossback",
+	"digby": "res://pets/digby",
+	"sunhop": "res://pets/sunhop",
+	"basko": "res://pets/basko",
+	"quill": "res://pets/quill",
 }
 
 # [EDIT] The animations: [name, frames, fps, loop, file names it accepts].
@@ -191,7 +203,7 @@ const AWAKE_MINUTES := 5.0
 
 # ===== SECTION 1: SETTINGS ===========================================================
 # [EDIT] Which pet this node shows (an id from PETS). Change it in the Inspector.
-@export var pet_id: String = "dragon":
+@export var pet_id: String = "nocti":
 	set(value):
 		pet_id = value
 		if Engine.is_editor_hint():
