@@ -62,8 +62,10 @@ var _round := 0
 # for multiplayer (the other player's pet fights as its last snapshot).
 # element = "" uses the pet's suggested element from pets.json.
 # skills = [] uses the pet's default loadout (pets.json), in priority order.
+# form = the pet's evolution form (Evolution.current / form_from_stats): its name is shown
+#        in battle and its id picks the form's battle frames. {} = the pet's own name.
 static func make_snapshot(pet_id: String, stats: Dictionary, level := 10, element := "",
-		skills: Array = []) -> Dictionary:
+		skills: Array = [], form: Dictionary = {}) -> Dictionary:
 	var db := GameDataLoader.shared()
 	var p := db.pet(pet_id)
 	if p.is_empty():
@@ -77,7 +79,8 @@ static func make_snapshot(pet_id: String, stats: Dictionary, level := 10, elemen
 	for sid in loadout:
 		resolved.append(_resolve_skill(sid, full))
 	return {
-		"pet_id": pet_id, "name": p.get("name", pet_id), "level": level,
+		"pet_id": pet_id, "name": form.get("name", p.get("name", pet_id)), "level": level,
+		"form": form.get("id", ""),
 		"element": element if element != "" else p.get("element", "none"),
 		"stats": full, "skills": resolved,
 		"ultimate": _resolve_skill(p.get("ultimate", ""), full),
@@ -674,7 +677,7 @@ func _fighter(snap: Dictionary) -> Dictionary:
 	var level := int(snap.get("level", 10))
 	var f := {
 		"pet_id": snap.get("pet_id", ""), "name": snap.get("name", ""), "level": level,
-		"element": snap.get("element", "none"), "stats": stats,
+		"form": snap.get("form", ""), "element": snap.get("element", "none"), "stats": stats,
 		"skills": snap.get("skills", []), "ultimate": snap.get("ultimate", {}),
 		"passive": snap.get("passive", {}),
 		"cooldowns": {}, "statuses": {}, "buffs": [], "counter": {}, "evade": {},
@@ -688,7 +691,7 @@ func _fighter(snap: Dictionary) -> Dictionary:
 
 func _summary(i: int) -> Dictionary:
 	var f: Dictionary = _f[i]
-	return {"pet_id": f["pet_id"], "name": f["name"], "element": f["element"], "level": f["level"],
+	return {"pet_id": f["pet_id"], "name": f["name"], "form": f["form"], "element": f["element"], "level": f["level"],
 		"max_hp": f["max_hp"], "max_mana": f["max_mana"], "hp": f["hp"]}
 
 func _alive(i: int) -> bool:

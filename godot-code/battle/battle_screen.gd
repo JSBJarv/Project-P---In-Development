@@ -125,9 +125,16 @@ func _run_fight() -> Dictionary:
 	for s in my_stats:
 		total += my_stats[s]
 	var level := PetStats.get_level(player)
-	var a := BattleSim.make_snapshot(player, my_stats, level)
-	var b := BattleSim.make_snapshot(opponent, BattleSim.sample_stats(opponent,
-		maxi(total, MIN_OPPONENT_POINTS)), level)
+	# [LOGIC] Both pets fight in their evolution form: its name, its battle frames and the
+	#         stage's flat stat bonus (evolution.gd). The practice opponent gets the form
+	#         its sample stats and the same level would give it.
+	var my_form := Evolution.current(player)
+	var a := BattleSim.make_snapshot(player, Evolution.battle_stats(player, my_stats, my_form.stage),
+		level, "", [], my_form)
+	var their_stats := BattleSim.sample_stats(opponent, maxi(total, MIN_OPPONENT_POINTS))
+	var their_form := Evolution.form_from_stats(opponent, their_stats, level, my_form.stage == "final")
+	var b := BattleSim.make_snapshot(opponent, Evolution.battle_stats(opponent, their_stats, their_form.stage),
+		level, "", [], their_form)
 	if a.is_empty() or b.is_empty():
 		return {}
 	var seed_value := int(Time.get_unix_time_from_system()) ^ randi()
@@ -165,6 +172,7 @@ func _build_screen() -> void:
 		var fighter := BattleFighter.new()
 		var pet_folder: String = load("res://pet.gd").get_script_constant_map().get("PETS", {}).get(f.pet_id,
 			"res://pets/" + f.pet_id)
+		pet_folder = Evolution.art_folder(f.pet_id, pet_folder, true, f.get("form", ""))
 		fighter.position = _home(side)
 		add_child(fighter)
 		fighter.setup(f.pet_id, f.element, side == 0, pet_folder)

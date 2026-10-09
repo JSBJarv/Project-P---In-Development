@@ -65,6 +65,47 @@ func _initialize() -> void:
 	# Training: flat Training Points, rising cost, daily cap
 	_check("point cost rises with the stat", PetStats.point_cost(10) < PetStats.point_cost(150))
 
+	# Evolution: stages, branches and forms (evolution.gd, evolution.json)
+	_check("stage from level", Evolution.stage_for(5) == "baby" and Evolution.stage_for(10) == "child"
+		and Evolution.stage_for(25) == "adult" and Evolution.stage_for(50) == "adult"
+		and Evolution.stage_for(50, true) == "final")
+	var cases := [
+		[{"str": 60, "int": 20, "agi": 20}, "adult", "Martial"],
+		[{"str": 20, "int": 60, "agi": 20}, "adult", "Arcane"],
+		[{"str": 20, "int": 20, "agi": 60}, "final", "Swift"],
+		[{"str": 34, "int": 33, "agi": 33}, "adult", "Harmony"],
+		[{"str": 34, "int": 33, "agi": 33}, "final", "Harmony"],
+		[{"str": 45, "int": 42, "agi": 13}, "final", "Martial-Arcane"],
+		[{"str": 13, "int": 42, "agi": 45}, "final", "Arcane-Swift"],
+		[{"str": 45, "int": 10, "agi": 45}, "final", "Martial-Swift"],
+		[{"str": 45, "int": 42, "agi": 13}, "adult", "Martial"],
+		[{"str": 50, "int": 50, "agi": 50}, "child", ""],
+	]
+	var wrong := []
+	for c in cases:
+		var got := Evolution.branch_for(c[0], c[1])
+		if got != c[2]:
+			wrong.append("%s %s -> %s (expected %s)" % [c[0], c[1], got, c[2]])
+	_check("branch from STR / INT / AGI share", wrong.is_empty(), str(wrong))
+	var form_ids := {}
+	var missing := []
+	for id in ids:
+		for stage_branches in [["adult", ["Martial", "Arcane", "Swift", "Harmony"]],
+				["final", ["Martial", "Arcane", "Swift", "Martial-Arcane", "Martial-Swift", "Arcane-Swift", "Harmony"]]]:
+			for br in stage_branches[1]:
+				var f := Evolution.form_for(id, stage_branches[0], br)
+				if f.id == "" or form_ids.has("%s/%s" % [id, f.id]):
+					missing.append("%s %s %s" % [id, stage_branches[0], br])
+				form_ids["%s/%s" % [id, f.id]] = true
+	_check("all 132 forms exist with unique ids", missing.is_empty() and form_ids.size() == 132, str(missing))
+	_check("Gym Wolf Martial goes chow chow -> Tibetan mastiff",
+		Evolution.form_for("gym_wolf", "adult", "Martial").animal == "Chow chow"
+		and Evolution.form_for("gym_wolf", "final", "Martial").animal == "Tibetan mastiff")
+	var boosted := Evolution.battle_stats("nocti", {"str": 10, "int": 10, "agi": 10, "vit": 10, "spi": 10}, "final")
+	_check("Final stage adds its stat bonus", boosted.str > 10 and boosted.spi == boosted.str)
+	_check("a form without art uses the pet's own frames",
+		Evolution.art_folder("nocti", "res://pets/nocti", false, "runeowl") == "res://pets/nocti")
+
 	print("\n%d passed, %d failed" % [_passes, _fails])
 	GameDataLoader.release_shared()
 	quit(1 if _fails > 0 else 0)

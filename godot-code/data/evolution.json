@@ -1,0 +1,223 @@
+{
+  "_about": "Evolution: when a pet changes form and which form it becomes. Explained in data/README.md and the Pet Evolution Guide PDF. Form ids are the folder names for form art: pets/<pet id>/forms/<form id>/ (care frames) and .../<form id>/battle/ (battle frames).",
+
+  "stages": {"child": 10, "adult": 25, "final": 45},
+  "_stages": "Level at which each stage starts. Before child the pet is a baby (after hatching). Final also needs the Trial battle won (final_needs_trial).",
+  "final_needs_trial": true,
+
+  "branch_rule": {"pure_lead": 8, "hybrid_within": 8, "harmony_within": 6},
+  "_branch_rule": "Uses the shares of STR, INT and AGI (percent of the three added up). Harmony: all three within harmony_within points. Pure: the top stat leads the second by at least pure_lead. Hybrid (Final only): the top two are within hybrid_within. An Adult that is neither Harmony nor clearly pure takes its top stat.",
+
+  "stage_bonus": {"baby": 0, "child": 2, "adult": 5, "final": 10},
+  "_stage_bonus": "Flat points added to every stat in battle at each stage (stats themselves never reset).",
+
+  "preview_levels_before": 3,
+  "_preview_levels_before": "From this many levels before Adult / Final, the app can show which form the pet is heading for.",
+
+  "forms": {
+    "nocti": {
+      "adult": {
+        "Martial": {"id": "talonguard", "name": "Talonguard", "animal": "Great horned owl"},
+        "Arcane": {"id": "runeowl", "name": "Runeowl", "animal": "Barn owl"},
+        "Swift": {"id": "galewing", "name": "Galewing", "animal": "Northern hawk-owl"},
+        "Harmony": {"id": "equinox_owl", "name": "Equinox Owl", "animal": "Eastern screech owl"}
+      },
+      "final": {
+        "Martial": {"id": "talon_sovereign", "name": "Talon Sovereign", "animal": "Harpy eagle"},
+        "Arcane": {"id": "archive_owl", "name": "Archive Owl", "animal": "Great grey owl"},
+        "Swift": {"id": "skyrend", "name": "Skyrend", "animal": "Peregrine falcon"},
+        "Martial-Arcane": {"id": "rune_talon", "name": "Rune Talon", "animal": "Harpy eagle + Great grey owl"},
+        "Martial-Swift": {"id": "strike_owl", "name": "Strike Owl", "animal": "Harpy eagle + Peregrine falcon"},
+        "Arcane-Swift": {"id": "windscribe", "name": "Windscribe", "animal": "Great grey owl + Peregrine falcon"},
+        "Harmony": {"id": "celestial_owl", "name": "Celestial Owl", "animal": "Snowy owl"}
+      }
+    },
+    "gym_wolf": {
+      "adult": {
+        "Martial": {"id": "ironfang", "name": "Ironfang", "animal": "Chow chow"},
+        "Arcane": {"id": "stormhowl", "name": "Stormhowl", "animal": "Samoyed"},
+        "Swift": {"id": "gustrunner", "name": "Gustrunner", "animal": "Whippet"},
+        "Harmony": {"id": "zenith_wolf", "name": "Zenith Wolf", "animal": "Shiba Inu"}
+      },
+      "final": {
+        "Martial": {"id": "titanfang", "name": "Titanfang", "animal": "Tibetan mastiff"},
+        "Arcane": {"id": "tempest_alpha", "name": "Tempest Alpha", "animal": "Arctic wolf"},
+        "Swift": {"id": "galeborn", "name": "Galeborn", "animal": "Borzoi"},
+        "Martial-Arcane": {"id": "rune_brawler", "name": "Rune Brawler", "animal": "Tibetan mastiff + Arctic wolf"},
+        "Martial-Swift": {"id": "gale_fang", "name": "Gale Fang", "animal": "Tibetan mastiff + Borzoi"},
+        "Arcane-Swift": {"id": "storm_dancer", "name": "Storm Dancer", "animal": "Arctic wolf + Borzoi"},
+        "Harmony": {"id": "zenith_alpha", "name": "Zenith Alpha", "animal": "Akita"}
+      }
+    },
+    "moonstep": {
+      "adult": {
+        "Martial": {"id": "crescent_claw", "name": "Crescent Claw", "animal": "Toyger"},
+        "Arcane": {"id": "starweaver", "name": "Starweaver", "animal": "Egyptian Mau"},
+        "Swift": {"id": "eclipse_dancer", "name": "Eclipse Dancer", "animal": "Bengal cat"},
+        "Harmony": {"id": "full_moon_sage", "name": "Full Moon Sage", "animal": "Siberian forest cat"}
+      },
+      "final": {
+        "Martial": {"id": "lunar_claw_queen", "name": "Lunar Claw Queen", "animal": "Tiger"},
+        "Arcane": {"id": "astral_weaver", "name": "Astral Weaver", "animal": "Caracal"},
+        "Swift": {"id": "eclipse_prima", "name": "Eclipse Prima", "animal": "Cheetah"},
+        "Martial-Arcane": {"id": "moon_knight", "name": "Moon Knight", "animal": "Tiger + Caracal"},
+        "Martial-Swift": {"id": "crescent_striker", "name": "Crescent Striker", "animal": "Tiger + Cheetah"},
+        "Arcane-Swift": {"id": "star_dancer", "name": "Star Dancer", "animal": "Caracal + Cheetah"},
+        "Harmony": {"id": "full_moon_oracle", "name": "Full Moon Oracle", "animal": "Snow leopard"}
+      }
+    },
+    "kindle": {
+      "adult": {
+        "Martial": {"id": "hearth_brawler", "name": "Hearth Brawler", "animal": "Sun bear"},
+        "Arcane": {"id": "ember_sage", "name": "Ember Sage", "animal": "Ring-tailed lemur"},
+        "Swift": {"id": "flicker_tail", "name": "Flicker Tail", "animal": "Red fox"},
+        "Harmony": {"id": "hearthkeeper", "name": "Hearthkeeper", "animal": "Giant panda"}
+      },
+      "final": {
+        "Martial": {"id": "hearth_champion", "name": "Hearth Champion", "animal": "Brown bear"},
+        "Arcane": {"id": "grand_ember_chef", "name": "Grand Ember Chef", "animal": "Verreaux's sifaka"},
+        "Swift": {"id": "wildfire_tail", "name": "Wildfire Tail", "animal": "Maned wolf"},
+        "Martial-Arcane": {"id": "spice_warden", "name": "Spice Warden", "animal": "Brown bear + Verreaux's sifaka"},
+        "Martial-Swift": {"id": "flame_brawler", "name": "Flame Brawler", "animal": "Brown bear + Maned wolf"},
+        "Arcane-Swift": {"id": "ember_witch", "name": "Ember Witch", "animal": "Verreaux's sifaka + Maned wolf"},
+        "Harmony": {"id": "hearth_spirit", "name": "Hearth Spirit", "animal": "Qinling panda"}
+      }
+    },
+    "cinderpip": {
+      "adult": {
+        "Martial": {"id": "blaze_knuckle", "name": "Blaze Knuckle", "animal": "Prairie dog"},
+        "Arcane": {"id": "pyro_pouch", "name": "Pyro Pouch", "animal": "Hazel dormouse"},
+        "Swift": {"id": "turbo_spark", "name": "Turbo Spark", "animal": "Gerbil"},
+        "Harmony": {"id": "steady_flame", "name": "Steady Flame", "animal": "Chipmunk"}
+      },
+      "final": {
+        "Martial": {"id": "inferno_champ", "name": "Inferno Champ", "animal": "Beaver"},
+        "Arcane": {"id": "pyro_sage", "name": "Pyro Sage", "animal": "Chinchilla"},
+        "Swift": {"id": "hyper_spark", "name": "Hyper Spark", "animal": "Long-eared jerboa"},
+        "Martial-Arcane": {"id": "spark_monk", "name": "Spark Monk", "animal": "Beaver + Chinchilla"},
+        "Martial-Swift": {"id": "turbo_champ", "name": "Turbo Champ", "animal": "Beaver + Long-eared jerboa"},
+        "Arcane-Swift": {"id": "flare_trickster", "name": "Flare Trickster", "animal": "Chinchilla + Long-eared jerboa"},
+        "Harmony": {"id": "calm_ember", "name": "Calm Ember", "animal": "Japanese dwarf flying squirrel"}
+      }
+    },
+    "ripple": {
+      "adult": {
+        "Martial": {"id": "torrent_fist", "name": "Torrent Fist", "animal": "North American river otter"},
+        "Arcane": {"id": "pearl_mystic", "name": "Pearl Mystic", "animal": "Harbor seal"},
+        "Swift": {"id": "riptide", "name": "Riptide", "animal": "Mink"},
+        "Harmony": {"id": "tidecaller", "name": "Tidecaller", "animal": "Asian small-clawed otter"}
+      },
+      "final": {
+        "Martial": {"id": "tidal_warlord", "name": "Tidal Warlord", "animal": "Giant river otter"},
+        "Arcane": {"id": "pearl_oracle", "name": "Pearl Oracle", "animal": "Harp seal"},
+        "Swift": {"id": "maelstrom", "name": "Maelstrom", "animal": "Pine marten"},
+        "Martial-Arcane": {"id": "pearl_warden", "name": "Pearl Warden", "animal": "Giant river otter + Harp seal"},
+        "Martial-Swift": {"id": "riptide_brawler", "name": "Riptide Brawler", "animal": "Giant river otter + Pine marten"},
+        "Arcane-Swift": {"id": "tide_mystic", "name": "Tide Mystic", "animal": "Harp seal + Pine marten"},
+        "Harmony": {"id": "ocean_sage", "name": "Ocean Sage", "animal": "Sea otter"}
+      }
+    },
+    "dozie": {
+      "adult": {
+        "Martial": {"id": "coral_bulwark", "name": "Coral Bulwark", "animal": "Hellbender"},
+        "Arcane": {"id": "dreamweaver", "name": "Dreamweaver", "animal": "Mudpuppy"},
+        "Swift": {"id": "bubble_dart", "name": "Bubble Dart", "animal": "Smooth newt"},
+        "Harmony": {"id": "lullaby", "name": "Lullaby", "animal": "Spotted salamander"}
+      },
+      "final": {
+        "Martial": {"id": "reef_colossus", "name": "Reef Colossus", "animal": "Japanese giant salamander"},
+        "Arcane": {"id": "dream_sovereign", "name": "Dream Sovereign", "animal": "Olm"},
+        "Swift": {"id": "bubble_comet", "name": "Bubble Comet", "animal": "Great crested newt"},
+        "Martial-Arcane": {"id": "dream_guard", "name": "Dream Guard", "animal": "Japanese giant salamander + Olm"},
+        "Martial-Swift": {"id": "reef_dart", "name": "Reef Dart", "animal": "Japanese giant salamander + Great crested newt"},
+        "Arcane-Swift": {"id": "dream_comet", "name": "Dream Comet", "animal": "Olm + Great crested newt"},
+        "Harmony": {"id": "moonlit_lullaby", "name": "Moonlit Lullaby", "animal": "Fire salamander"}
+      }
+    },
+    "mossback": {
+      "adult": {
+        "Martial": {"id": "boulder_guard", "name": "Boulder Guard", "animal": "Common snapping turtle"},
+        "Arcane": {"id": "grove_elder", "name": "Grove Elder", "animal": "Russian tortoise"},
+        "Swift": {"id": "rollshell", "name": "Rollshell", "animal": "Pig-nosed turtle"},
+        "Harmony": {"id": "evergreen", "name": "Evergreen", "animal": "Eastern box turtle"}
+      },
+      "final": {
+        "Martial": {"id": "mountain_bastion", "name": "Mountain Bastion", "animal": "Alligator snapping turtle"},
+        "Arcane": {"id": "ancient_grove", "name": "Ancient Grove", "animal": "Galapagos giant tortoise"},
+        "Swift": {"id": "thunder_roll", "name": "Thunder Roll", "animal": "Green sea turtle"},
+        "Martial-Arcane": {"id": "grove_bastion", "name": "Grove Bastion", "animal": "Alligator snapping turtle + Galapagos giant tortoise"},
+        "Martial-Swift": {"id": "boulder_roller", "name": "Boulder Roller", "animal": "Alligator snapping turtle + Green sea turtle"},
+        "Arcane-Swift": {"id": "leaf_drifter", "name": "Leaf Drifter", "animal": "Galapagos giant tortoise + Green sea turtle"},
+        "Harmony": {"id": "world_turtle", "name": "World Turtle", "animal": "Radiated tortoise"}
+      }
+    },
+    "digby": {
+      "adult": {
+        "Martial": {"id": "drillclaw", "name": "Drillclaw", "animal": "Nine-banded armadillo"},
+        "Arcane": {"id": "geomancer", "name": "Geomancer", "animal": "Eastern mole"},
+        "Swift": {"id": "burrow_dash", "name": "Burrow Dash", "animal": "Desert golden mole"},
+        "Harmony": {"id": "bedrock_sage", "name": "Bedrock Sage", "animal": "Pink fairy armadillo"}
+      },
+      "final": {
+        "Martial": {"id": "driller_king", "name": "Driller King", "animal": "Giant armadillo"},
+        "Arcane": {"id": "crystal_geomancer", "name": "Crystal Geomancer", "animal": "Star-nosed mole"},
+        "Swift": {"id": "tunnel_comet", "name": "Tunnel Comet", "animal": "Checkered sengi"},
+        "Martial-Arcane": {"id": "crystal_driller", "name": "Crystal Driller", "animal": "Giant armadillo + Star-nosed mole"},
+        "Martial-Swift": {"id": "burrow_brawler", "name": "Burrow Brawler", "animal": "Giant armadillo + Checkered sengi"},
+        "Arcane-Swift": {"id": "gem_comet", "name": "Gem Comet", "animal": "Star-nosed mole + Checkered sengi"},
+        "Harmony": {"id": "bedrock_monk", "name": "Bedrock Monk", "animal": "Pangolin"}
+      }
+    },
+    "sunhop": {
+      "adult": {
+        "Martial": {"id": "sunkick", "name": "Sunkick", "animal": "Flemish giant rabbit"},
+        "Arcane": {"id": "dawn_oracle", "name": "Dawn Oracle", "animal": "Lionhead rabbit"},
+        "Swift": {"id": "daybreak_blur", "name": "Daybreak Blur", "animal": "European brown hare"},
+        "Harmony": {"id": "solstice_hare", "name": "Solstice Hare", "animal": "Dutch rabbit"}
+      },
+      "final": {
+        "Martial": {"id": "solar_striker", "name": "Solar Striker", "animal": "Red kangaroo"},
+        "Arcane": {"id": "dawn_prophet", "name": "Dawn Prophet", "animal": "Giant angora rabbit"},
+        "Swift": {"id": "lightspeed_hare", "name": "Lightspeed Hare", "animal": "Antelope jackrabbit"},
+        "Martial-Arcane": {"id": "sun_paladin", "name": "Sun Paladin", "animal": "Red kangaroo + Giant angora rabbit"},
+        "Martial-Swift": {"id": "dawn_striker", "name": "Dawn Striker", "animal": "Red kangaroo + Antelope jackrabbit"},
+        "Arcane-Swift": {"id": "light_oracle", "name": "Light Oracle", "animal": "Giant angora rabbit + Antelope jackrabbit"},
+        "Harmony": {"id": "solstice_guardian", "name": "Solstice Guardian", "animal": "Snowshoe hare"}
+      }
+    },
+    "basko": {
+      "adult": {
+        "Martial": {"id": "sun_fist_monk", "name": "Sun Fist Monk", "animal": "Pygmy hippopotamus"},
+        "Arcane": {"id": "radiant_sage", "name": "Radiant Sage", "animal": "Brazilian tapir"},
+        "Swift": {"id": "warm_current", "name": "Warm Current", "animal": "Agouti"},
+        "Harmony": {"id": "serenity", "name": "Serenity", "animal": "Quokka"}
+      },
+      "final": {
+        "Martial": {"id": "golden_fist_monk", "name": "Golden Fist Monk", "animal": "Hippopotamus"},
+        "Arcane": {"id": "radiant_saint", "name": "Radiant Saint", "animal": "Malayan tapir"},
+        "Swift": {"id": "hot_spring_drifter", "name": "Hot Spring Drifter", "animal": "Patagonian mara"},
+        "Martial-Arcane": {"id": "sun_monk_sage", "name": "Sun Monk Sage", "animal": "Hippopotamus + Malayan tapir"},
+        "Martial-Swift": {"id": "current_fist", "name": "Current Fist", "animal": "Hippopotamus + Patagonian mara"},
+        "Arcane-Swift": {"id": "drifting_saint", "name": "Drifting Saint", "animal": "Malayan tapir + Patagonian mara"},
+        "Harmony": {"id": "serenity_itself", "name": "Serenity Itself", "animal": "Wombat"}
+      }
+    },
+    "quill": {
+      "adult": {
+        "Martial": {"id": "spine_knight", "name": "Spine Knight", "animal": "North American porcupine"},
+        "Arcane": {"id": "ink_seer", "name": "Ink Seer", "animal": "Short-beaked echidna"},
+        "Swift": {"id": "needle_rush", "name": "Needle Rush", "animal": "Lowland streaked tenrec"},
+        "Harmony": {"id": "inkwell_sage", "name": "Inkwell Sage", "animal": "African pygmy hedgehog"}
+      },
+      "final": {
+        "Martial": {"id": "quill_paladin", "name": "Quill Paladin", "animal": "Crested porcupine"},
+        "Arcane": {"id": "grand_scribe", "name": "Grand Scribe", "animal": "Long-beaked echidna"},
+        "Swift": {"id": "needlestorm", "name": "Needlestorm", "animal": "Brush-tailed porcupine"},
+        "Martial-Arcane": {"id": "ink_paladin", "name": "Ink Paladin", "animal": "Crested porcupine + Long-beaked echidna"},
+        "Martial-Swift": {"id": "needle_knight", "name": "Needle Knight", "animal": "Crested porcupine + Brush-tailed porcupine"},
+        "Arcane-Swift": {"id": "ink_comet", "name": "Ink Comet", "animal": "Long-beaked echidna + Brush-tailed porcupine"},
+        "Harmony": {"id": "inkwell_elder", "name": "Inkwell Elder", "animal": "Long-eared hedgehog"}
+      }
+    }
+  }
+}
